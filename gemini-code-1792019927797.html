@@ -1,0 +1,2507 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>ROYAL GYM | بوابة القيادة لـ Ishak والأصدقاء</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Gun.js Real-time Cloud Sync -->
+    <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+    <!-- Google Fonts: Cairo -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --gold-light: #f9eeb2;
+            --gold-main: #d4af37;
+            --gold-dark: #9a6f12;
+            --obsidian: #06070a;
+            --card-bg: rgba(15, 18, 26, 0.95);
+        }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--obsidian);
+            background-image: 
+                radial-gradient(circle at 12% 10%, rgba(212, 175, 55, 0.09) 0%, transparent 40%),
+                radial-gradient(circle at 88% 90%, rgba(212, 175, 55, 0.06) 0%, transparent 40%);
+            color: #f8fafc;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .luxury-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(212, 175, 55, 0.18);
+            box-shadow: 0 12px 35px -10px rgba(0, 0, 0, 0.85);
+        }
+        .gold-gradient-text {
+            background: linear-gradient(135deg, #fff8db 0%, #d4af37 55%, #a17411 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .gold-btn {
+            background: linear-gradient(135deg, #e5c158 0%, #d4af37 50%, #9a6f12 100%);
+            color: #06070a;
+            font-weight: 800;
+            box-shadow: 0 4px 18px rgba(212, 175, 55, 0.28);
+        }
+        .gold-btn:hover { filter: brightness(1.08); }
+        .gold-border-glow {
+            border-color: #d4af37 !important;
+            box-shadow: 0 0 22px rgba(212, 175, 55, 0.25);
+        }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes pulseSlow {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+        }
+        .animate-pulse-slow { animation: pulseSlow 2.2s infinite ease-in-out; }
+    </style>
+</head>
+<body class="min-h-screen pb-36 select-none">
+
+    <!-- ===================================================== -->
+    <!-- 1. VIP AUTHENTICATION GATEWAY (FIRST SCREEN)          -->
+    <!-- ===================================================== -->
+    <div id="authScreen" class="fixed inset-0 z-50 bg-[#06070a] flex flex-col items-center justify-center p-4 overflow-y-auto">
+        <div class="max-w-xl w-full space-y-5 my-auto py-4">
+            <!-- Royal Header -->
+            <div class="text-center space-y-2">
+                <div class="w-16 h-16 rounded-3xl gold-btn mx-auto flex items-center justify-center shadow-2xl mb-2">
+                    <i class="fa-solid fa-crown text-2xl text-black"></i>
+                </div>
+                <div class="flex items-center justify-center gap-2 flex-wrap">
+                    <span class="text-[11px] font-extrabold tracking-wider uppercase px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300">
+                        ROYAL CLUB • بقيادة وإدارة ISHAK
+                    </span>
+                    <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                        <i class="fa-solid fa-cloud text-[9px]"></i>
+                        <span>مزامنة سحابية نشطة</span>
+                    </span>
+                </div>
+                <h1 class="text-3xl sm:text-4xl font-black gold-gradient-text pt-1">نادي النخبة وتنظيم اليوم</h1>
+                <p class="text-xs sm:text-sm text-slate-400">اختر حسابك الخاص — كل عضو ينشئ كلمته السرية الخاصة به</p>
+            </div>
+
+            <!-- 4 Ordered Member Cards (No Passwords Shown on Cards!) -->
+            <div id="profilesGrid" class="grid grid-cols-2 gap-3.5">
+                <!-- Populated via JS -->
+            </div>
+
+            <!-- Quick Note -->
+            <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3 text-center text-[11px] text-slate-400">
+                <i class="fa-solid fa-shield-halved text-amber-400 ml-1"></i>
+                حسابات خاصة ومحمية: عند دخولك لأول مرة ستقوم بإنشاء كلمة المرور الخاصة بك ليُقفل حسابك تلقائياً.
+            </div>
+        </div>
+
+        <!-- CENTERED LOGIN / CREATE PASSWORD MODAL -->
+        <div id="pinModalOverlay" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
+            <div class="luxury-card max-w-sm w-full rounded-3xl p-6 space-y-4 border-2 border-amber-500/50 shadow-2xl">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div class="flex items-center gap-3">
+                        <div id="selectedAvatarBox" class="w-12 h-12 rounded-2xl gold-btn flex items-center justify-center font-black text-base overflow-hidden">
+                            IS
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <h3 id="selectedMemberTitle" class="font-black text-base text-white"></h3>
+                                <span id="selectedAdminBadge" class="hidden text-[9px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full">👑 المدير</span>
+                            </div>
+                            <p id="selectedMemberSub" class="text-[11px] text-amber-300/90"></p>
+                        </div>
+                    </div>
+                    <button onclick="closePinBox()" class="w-8 h-8 rounded-full bg-slate-900 text-slate-400 hover:text-white flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- First-Time Setup Fields (Shown ONLY if this member hasn't created their password yet) -->
+                <div id="firstTimeSetupFields" class="space-y-3 hidden">
+                    <div class="p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-[11px] text-amber-200 text-center">
+                        أكّد بيانات جسمك وأنشئ كلمة المرور الخاصة بك ليتم قفل حسابك وتصميم جدولك:
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 block mb-1 text-center">العمر</label>
+                            <input id="setupAgeInput" type="number" class="w-full bg-slate-950 border border-slate-700 rounded-xl py-2 text-center font-black text-amber-300 text-sm focus:outline-none focus:border-amber-400">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 block mb-1 text-center">الوزن (kg)</label>
+                            <input id="setupWeightInput" type="number" class="w-full bg-slate-950 border border-slate-700 rounded-xl py-2 text-center font-black text-amber-300 text-sm focus:outline-none focus:border-amber-400">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 block mb-1 text-center">الطول (cm)</label>
+                            <input id="setupHeightInput" type="number" class="w-full bg-slate-950 border border-slate-700 rounded-xl py-2 text-center font-black text-amber-300 text-sm focus:outline-none focus:border-amber-400">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Password Input with Eye Toggle -->
+                <div class="space-y-1.5">
+                    <label id="pinLabel" class="text-xs font-bold text-slate-300 block text-center">أدخل كلمة المرور</label>
+                    <div class="relative">
+                        <input id="pinInput" type="text" inputmode="numeric" maxlength="8" placeholder="••••" onkeydown="if(event.key==='Enter') handleAuthSubmit()" class="w-full bg-slate-950 border border-amber-500/50 rounded-2xl px-10 py-3 text-center text-2xl tracking-[0.25em] font-black text-amber-300 focus:outline-none focus:border-amber-400">
+                        <button type="button" onclick="togglePinVisibility('pinInput', 'pinEyeIcon')" title="إظهار / إخفاء كلمة المرور" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-amber-400 hover:text-amber-200 text-base p-1">
+                            <i id="pinEyeIcon" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                    <p class="text-[10px] text-slate-400 text-center">يمكنك الضغط على أيقونة العين 👁️ لإظهار أو إخفاء الأرقام أثناء الكتابة</p>
+                    <p id="pinError" class="text-xs text-rose-400 text-center pt-1 hidden font-bold"></p>
+                </div>
+
+                <button onclick="handleAuthSubmit()" class="w-full py-3.5 rounded-2xl gold-btn text-sm transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-unlock-keyhole"></i>
+                    <span id="authSubmitBtnText">دخول إلى حسابي</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- 2. MAIN APPLICATION INTERFACE (BEST ORGANIZATION)     -->
+    <!-- ===================================================== -->
+    <div id="mainApp" class="hidden">
+
+        <!-- Admin Impersonation Notice Bar -->
+        <div id="adminOverrideBanner" class="hidden bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-600 text-black px-4 py-2 text-xs font-black">
+            <div class="max-w-4xl mx-auto flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-crown text-sm"></i>
+                    <span id="adminOverrideText">وضع المدير العام (Ishak): أنت تتحكم الآن في حساب صديقك</span>
+                </div>
+                <button onclick="returnToIshakAdmin()" class="bg-black text-amber-300 px-3 py-1 rounded-lg text-[11px] font-black hover:bg-slate-900 transition">
+                    العودة لحساب Ishak 👑
+                </button>
+            </div>
+        </div>
+
+        <!-- Section A: Top Luxury Header -->
+        <header class="sticky top-0 z-30 luxury-card px-4 py-3 border-b border-amber-500/20">
+            <div class="max-w-4xl mx-auto flex items-center justify-between gap-2">
+                <div class="flex items-center gap-3">
+                    <div id="headerAvatar" onclick="switchTab('body')" class="cursor-pointer w-12 h-12 rounded-2xl gold-btn flex items-center justify-center text-base font-black shadow-lg overflow-hidden border-2 border-amber-300/60 shrink-0">
+                        IS
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h1 id="headerUserName" class="text-base sm:text-lg font-black gold-gradient-text">Ishak</h1>
+                            <span id="headerAdminCrown" class="hidden text-[10px] font-black bg-amber-500/25 text-amber-200 border border-amber-400/50 px-2 py-0.5 rounded-full">
+                                👑 المدير العام
+                            </span>
+                            <span id="headerBodyBadge" class="text-[10px] font-extrabold bg-slate-900 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full"></span>
+                        </div>
+                        <p id="headerMetricsText" class="text-[11px] text-slate-400 font-semibold mt-0.5"></p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0">
+                    <button onclick="openTimerModal()" class="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 border border-amber-500/30 px-3 py-2 rounded-xl text-xs font-bold transition">
+                        <i class="fa-solid fa-stopwatch text-amber-400"></i>
+                        <span id="headerTimerText" class="text-amber-100">الراحة</span>
+                    </button>
+                    <button onclick="lockProfile()" title="قفل الحساب وتغيير المستخدم" class="flex items-center gap-1.5 bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 px-3 py-2 rounded-xl text-xs font-bold transition">
+                        <i class="fa-solid fa-lock"></i>
+                        <span class="hidden sm:inline">قفل الحساب</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Organized Container -->
+        <main class="max-w-4xl mx-auto px-4 pt-4 space-y-4">
+
+            <!-- Section B: Primary Navigation Bar (Ordered Logically 1 to 5) -->
+            <div id="navTabsGrid" class="grid grid-cols-4 gap-1.5 p-1.5 bg-slate-950/95 rounded-2xl border border-amber-500/25 shadow-lg">
+                <button id="tabBtn_workout" onclick="switchTab('workout')" class="py-2.5 px-2 rounded-xl font-extrabold text-xs transition flex flex-col sm:flex-row items-center justify-center gap-1.5 gold-btn">
+                    <i class="fa-solid fa-dumbbell"></i>
+                    <span>1. تمارين النادي</span>
+                </button>
+                <button id="tabBtn_schedule" onclick="switchTab('schedule')" class="py-2.5 px-2 rounded-xl font-extrabold text-xs transition flex flex-col sm:flex-row items-center justify-center gap-1.5 text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    <span>2. تنظيم نهاري</span>
+                </button>
+                <button id="tabBtn_playlist" onclick="switchTab('playlist')" class="py-2.5 px-2 rounded-xl font-extrabold text-xs transition flex flex-col sm:flex-row items-center justify-center gap-1.5 text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-headphones"></i>
+                    <span>3. صوتياتي</span>
+                </button>
+                <button id="tabBtn_body" onclick="switchTab('body')" class="py-2.5 px-2 rounded-xl font-extrabold text-xs transition flex flex-col sm:flex-row items-center justify-center gap-1.5 text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-user-gear"></i>
+                    <span>4. ملفي والرمز</span>
+                </button>
+                <!-- 5th Tab for Ishak Only -->
+                <button id="tabBtn_admin" onclick="switchTab('admin')" class="hidden py-2.5 px-2 rounded-xl font-extrabold text-xs transition flex-col sm:flex-row items-center justify-center gap-1.5 text-amber-300 hover:text-white border border-amber-500/30 bg-amber-500/10">
+                    <i class="fa-solid fa-crown"></i>
+                    <span>5. تحكم Ishak</span>
+                </button>
+            </div>
+
+            <!-- Section C: Biometric & Nutrition Bento Strip -->
+            <section class="luxury-card rounded-3xl p-3.5 border border-amber-500/20">
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center">
+                    <div class="bg-slate-950/80 rounded-2xl p-2 border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block">العمر</span>
+                        <span id="statAge" class="text-xs sm:text-sm font-black text-amber-300 mt-0.5 block">-- سنة</span>
+                    </div>
+                    <div class="bg-slate-950/80 rounded-2xl p-2 border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block">الوزن والطول</span>
+                        <span id="statWeightHeight" class="text-xs sm:text-sm font-black text-white mt-0.5 block">-- kg • -- cm</span>
+                    </div>
+                    <div class="bg-slate-950/80 rounded-2xl p-2 border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block">مؤشر الكتلة (BMI)</span>
+                        <span id="statBMI" class="text-xs sm:text-sm font-black text-amber-200 mt-0.5 block">--</span>
+                    </div>
+                    <div class="bg-slate-950/80 rounded-2xl p-2 border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block">البروتين اليومي</span>
+                        <span id="statProtein" class="text-xs sm:text-sm font-black text-emerald-400 mt-0.5 block">-- g</span>
+                    </div>
+                    <div class="col-span-2 sm:col-span-1 bg-slate-950/80 rounded-2xl p-2 border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block">السعرات اليومية</span>
+                        <span id="statCalories" class="text-xs sm:text-sm font-black text-sky-400 mt-0.5 block">-- kcal</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section D: Weekly Day Selector & Daily Progress Banner -->
+            <section id="daysBarSection" class="space-y-3">
+                <div id="daysContainer" class="flex gap-2 overflow-x-auto hide-scroll pb-1"></div>
+
+                <div id="dayBannerSection" class="luxury-card rounded-3xl p-4 relative overflow-hidden">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div>
+                            <span id="dayBadge" class="inline-block px-3 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-500/15 text-amber-300 border border-amber-500/30 mb-1"></span>
+                            <h2 id="dayTitle" class="text-lg sm:text-xl font-black text-white"></h2>
+                            <p id="daySubtitle" class="text-xs text-slate-400 mt-0.5"></p>
+                        </div>
+                        <div class="flex items-center gap-3.5 bg-slate-950/80 px-3.5 py-2 rounded-2xl border border-slate-800">
+                            <div class="text-center">
+                                <span id="setsStat" class="block text-base font-black text-amber-400">0/0</span>
+                                <span class="text-[10px] text-slate-400">جولات التمرين</span>
+                            </div>
+                            <div class="h-7 w-[1px] bg-slate-800"></div>
+                            <div class="text-center">
+                                <span id="tasksStat" class="block text-base font-black text-emerald-400">0/0</span>
+                                <span class="text-[10px] text-slate-400">مهام النهار</span>
+                            </div>
+                            <button onclick="resetDayProgress()" title="تصفير إنجاز اليوم" class="w-8 h-8 rounded-xl bg-slate-900 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-slate-800 flex items-center justify-center transition">
+                                <i class="fa-solid fa-rotate-right text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="flex justify-between text-[11px] font-bold mb-1">
+                            <span class="text-slate-400">نسبة إنجاز خطة اليوم</span>
+                            <span id="progressPercent" class="text-amber-300">0%</span>
+                        </div>
+                        <div class="w-full h-2 bg-slate-900 rounded-full overflow-hidden">
+                            <div id="progressBar" class="h-full gold-btn rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===================================================== -->
+            <!-- TAB 1: WORKOUTS (ORDERED, NUMBERED, 3 SETS, ANATOMY)  -->
+            <!-- ===================================================== -->
+            <section id="section_workout" class="space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-950/60 px-4 py-2.5 rounded-2xl border border-slate-800/80">
+                    <h3 class="text-xs sm:text-sm font-extrabold text-amber-200 flex items-center gap-2">
+                        <i class="fa-solid fa-list-ol text-amber-400"></i>
+                        <span>ترتيب التمارين (يمكنك إعادة ترتيب أي تمرين بالأسهم ⬆️⬇️)</span>
+                    </h3>
+                    <div class="flex items-center gap-2">
+                        <button onclick="openSwapModal()" class="text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-xl transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-right-left text-amber-400"></i>
+                            <span>تبديل يوم التمرين</span>
+                        </button>
+                        <button onclick="openAddExerciseModal()" class="text-xs font-bold gold-btn px-3 py-1.5 rounded-xl transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>إضافة تمرين</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="exercisesList" class="space-y-4"></div>
+            </section>
+
+            <!-- ===================================================== -->
+            <!-- TAB 2: DAILY SCHEDULE (CHRONOLOGICAL ORDER)           -->
+            <!-- ===================================================== -->
+            <section id="section_schedule" class="space-y-4 hidden">
+                <div class="flex items-center justify-between bg-slate-950/60 px-4 py-2.5 rounded-2xl border border-slate-800/80">
+                    <h3 class="text-xs sm:text-sm font-extrabold text-amber-200 flex items-center gap-2">
+                        <i class="fa-solid fa-clock text-amber-400"></i>
+                        <span>جدول تنظيم النهار (مرتب زمنياً من الصباح إلى المساء)</span>
+                    </h3>
+                    <button onclick="openAddTaskModal()" class="text-xs font-bold gold-btn px-3.5 py-1.5 rounded-xl transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>إضافة مهمة</span>
+                    </button>
+                </div>
+
+                <div id="tasksList" class="space-y-2.5"></div>
+            </section>
+
+            <!-- ===================================================== -->
+            <!-- TAB 3: PERSONAL PLAYLIST & AUDIO                      -->
+            <!-- ===================================================== -->
+            <section id="section_playlist" class="space-y-4 hidden">
+                <div class="luxury-card rounded-3xl p-5 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                        <div>
+                            <h3 class="text-base font-black gold-gradient-text flex items-center gap-2">
+                                <i class="fa-solid fa-music"></i>
+                                <span>مكتبتي الصوتية الخاصة (أناشيد • قرآن • حماس • Playlist)</span>
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-0.5">أضف أناشيدك أو مقاطعك الصوتية من هاتفك أو عبر روابط مباشرة</p>
+                        </div>
+                        <label class="cursor-pointer gold-btn text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-upload"></i>
+                            <span>رفع ملف صوتي من جهازي</span>
+                            <input type="file" accept="audio/*" class="hidden" onchange="handleLocalAudioUpload(event)">
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-2.5 bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800">
+                        <input id="trackTitleInput" type="text" placeholder="اسم المقطع أو النشيد..." class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400">
+                        <select id="trackCategoryInput" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400">
+                            <option value="أناشيد حماسية">🎙️ أناشيد حماسية</option>
+                            <option value="قرآن كريم">📖 قرآن كريم</option>
+                            <option value="موسيقى / تحفيز">🔥 موسيقى / تحفيز</option>
+                            <option value="Playlist خارجي">🎧 رابط Playlist</option>
+                        </select>
+                        <input id="trackUrlInput" type="url" placeholder="رابط MP3 أو YouTube / SoundCloud" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400">
+                        <button onclick="addCustomTrack()" class="gold-btn rounded-xl py-2 px-3 text-xs font-black transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>إضافة للمكتبة</span>
+                        </button>
+                    </div>
+
+                    <div id="externalPlayerBox" class="hidden rounded-2xl overflow-hidden border border-amber-500/30 bg-black aspect-video max-h-64 mx-auto"></div>
+
+                    <div id="playlistContainer" class="space-y-2.5"></div>
+                </div>
+            </section>
+
+            <!-- ===================================================== -->
+            <!-- TAB 4: PROFILE, PHOTO, BIOMETRICS & PASSWORD (PIN)    -->
+            <!-- ===================================================== -->
+            <section id="section_body" class="space-y-4 hidden">
+                <div class="luxury-card rounded-3xl p-5 space-y-6">
+                    <div class="border-b border-slate-800 pb-3">
+                        <h3 class="text-base font-black gold-gradient-text flex items-center gap-2">
+                            <i class="fa-solid fa-id-card-clip"></i>
+                            <span>إعدادات ملفي الشخصي (الصورة • الاسم • العمر • الوزن • كلمة المرور)</span>
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-0.5">يتم حفظ ومزامنة تعديلاتك سحابياً تلقائياً</p>
+                    </div>
+
+                    <!-- 1. Profile Photo & Name Editor -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center bg-slate-950/80 p-4 rounded-3xl border border-slate-800">
+                        <div class="flex flex-col items-center space-y-2.5">
+                            <div id="profilePreviewAvatar" class="w-24 h-24 rounded-3xl gold-btn flex items-center justify-center text-2xl font-black overflow-hidden border-2 border-amber-400 shadow-xl">
+                                IS
+                            </div>
+                            <div class="flex gap-2">
+                                <label class="cursor-pointer bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[11px] font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-camera"></i>
+                                    <span>اختر صورة من جهازك</span>
+                                    <input type="file" accept="image/*" class="hidden" onchange="handleProfilePhotoUpload(event)">
+                                </label>
+                                <button onclick="removeProfilePhoto()" title="حذف الصورة" class="bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 text-[11px] px-2.5 py-1.5 rounded-xl">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 block mb-1">الاسم الأساسي</label>
+                                <input id="editNameInput" type="text" class="w-full bg-slate-900 border border-amber-500/30 rounded-xl px-3 py-2.5 text-sm font-black text-white focus:outline-none focus:border-amber-400">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 block mb-1">اللقب أو الاسم بالعربي</label>
+                                <input id="editArNameInput" type="text" class="w-full bg-slate-900 border border-amber-500/30 rounded-xl px-3 py-2.5 text-sm font-black text-amber-300 focus:outline-none focus:border-amber-400">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="text-xs font-bold text-slate-400 block mb-1">أو ضع رابط صورة مباشر (اختياري)</label>
+                                <input id="editPhotoUrlInput" type="url" placeholder="https://..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-amber-400">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Biometrics: Age, Weight, Height -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800">
+                            <label class="text-xs font-bold text-slate-400 block mb-1.5">العمر (سنة)</label>
+                            <input id="editAgeInput" type="number" class="w-full bg-slate-900 border border-amber-500/30 rounded-xl px-3 py-2.5 text-lg font-black text-amber-300 text-center">
+                        </div>
+                        <div class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800">
+                            <label class="text-xs font-bold text-slate-400 block mb-1.5">الوزن الحالي (kg)</label>
+                            <input id="editWeightInput" type="number" class="w-full bg-slate-900 border border-amber-500/30 rounded-xl px-3 py-2.5 text-lg font-black text-amber-300 text-center">
+                        </div>
+                        <div class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800">
+                            <label class="text-xs font-bold text-slate-400 block mb-1.5">الطول الحالي (cm)</label>
+                            <input id="editHeightInput" type="number" class="w-full bg-slate-900 border border-amber-500/30 rounded-xl px-3 py-2.5 text-lg font-black text-amber-300 text-center">
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button onclick="saveProfileOnly()" class="flex-1 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            <span>حفظ الاسم والصورة والبيانات فقط</span>
+                        </button>
+                        <button onclick="saveMetricsAndRecalculate()" class="flex-1 py-3.5 rounded-2xl gold-btn text-xs sm:text-sm transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span>تحديث وتوليد جدول جديد حسب وزني وطولي وعمري</span>
+                        </button>
+                    </div>
+
+                    <!-- 3. Password (PIN) Change Box -->
+                    <div class="pt-4 border-t border-slate-800 space-y-3">
+                        <h4 class="text-sm font-extrabold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-key text-amber-400"></i>
+                            <span>تغيير كلمة المرور الخاصة بحسابك (PIN)</span>
+                        </h4>
+                        <div class="flex gap-2">
+                            <div class="relative flex-1">
+                                <input id="newPinInput" type="text" inputmode="numeric" maxlength="8" placeholder="أدخل كلمة المرور الجديدة (4 أرقام أو أكثر)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-10 py-2.5 text-sm text-center font-black text-amber-300">
+                                <button type="button" onclick="togglePinVisibility('newPinInput', 'newPinEye')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-amber-300">
+                                    <i id="newPinEye" class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                            <button onclick="updateUserPin()" class="gold-btn text-xs px-5 rounded-xl transition">
+                                تحديث الرمز
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===================================================== -->
+            <!-- TAB 5: ISHAK MASTER ADMIN CONTROL PANEL 👑            -->
+            <!-- ===================================================== -->
+            <section id="section_admin" class="space-y-4 hidden">
+                <div class="luxury-card rounded-3xl p-5 border-2 border-amber-500/40 space-y-5">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-4 flex-wrap gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-2xl gold-btn flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-crown"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-black gold-gradient-text">غرفة التحكم المركزية — المدير العام Ishak</h3>
+                                <p class="text-xs text-slate-400">تحكم كامل في حسابات الأصدقاء، تعديل أوزانهم، أو إعادة ضبط كلمة المرور لأي صديق نسي رمزه.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+                            <button onclick="pushAllToCloud(true)" class="flex-1 sm:flex-initial bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 font-extrabold text-xs px-4 py-2.5 rounded-xl transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                                <span>مزامنة فورية للجميع</span>
+                            </button>
+                            <button onclick="exportBakedHtmlFile()" class="flex-1 sm:flex-initial gold-btn text-xs px-4 py-2.5 rounded-xl transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-file-code"></i>
+                                <span>تحميل ملف index.html النهائي</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="adminMembersList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- PERSISTENT BOTTOM AUDIO PLAYER BAR -->
+        <div class="fixed bottom-0 inset-x-0 z-40 luxury-card border-t border-amber-500/25 px-4 py-2.5">
+            <div class="max-w-4xl mx-auto flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-300 shrink-0">
+                        <i class="fa-solid fa-headphones"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p id="nowPlayingTitle" class="text-xs font-extrabold text-white truncate">اختر مقطعاً من مكتبتك الصوتية</p>
+                        <p id="nowPlayingSub" class="text-[10px] text-amber-300/80 truncate">مشغل خاص بحسابك أثناء التمرين</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    <audio id="mainAudioElement" class="hidden" controls></audio>
+                    <button onclick="prevTrack()" class="w-8 h-8 rounded-lg bg-slate-900 text-slate-300 hover:text-white flex items-center justify-center border border-slate-800">
+                        <i class="fa-solid fa-backward-step text-xs"></i>
+                    </button>
+                    <button id="playPauseBtn" onclick="toggleAudioPlay()" class="w-10 h-10 rounded-xl gold-btn flex items-center justify-center">
+                        <i class="fa-solid fa-play text-xs"></i>
+                    </button>
+                    <button onclick="nextTrack()" class="w-8 h-8 rounded-lg bg-slate-900 text-slate-300 hover:text-white flex items-center justify-center border border-slate-800">
+                        <i class="fa-solid fa-forward-step text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- MODALS (VIDEO & ANATOMY, TIMER, SWAP, ADD ITEMS)      -->
+    <!-- ===================================================== -->
+
+    <!-- VIDEO & ANATOMY BREAKDOWN MODAL -->
+    <div id="videoModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="luxury-card max-w-lg w-full rounded-3xl overflow-hidden border border-amber-500/40 shadow-2xl max-h-[92vh] overflow-y-auto">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-800">
+                <div>
+                    <span id="modalMuscleTag" class="text-[11px] font-bold text-amber-400"></span>
+                    <h3 id="modalExerciseName" class="text-base sm:text-lg font-black text-white"></h3>
+                </div>
+                <button onclick="closeVideoModal()" class="w-9 h-9 rounded-full bg-slate-900 text-slate-400 hover:text-white flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-4">
+                <div id="videoContainer" class="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 aspect-video flex flex-col items-center justify-center"></div>
+
+                <div class="bg-slate-950/95 border border-amber-500/30 rounded-2xl p-3.5 space-y-2">
+                    <h4 class="text-xs font-black text-amber-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-crosshairs"></i>
+                        <span>تشريح المنطقة المستهدفة بالتفصيل:</span>
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <div class="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800">
+                            <span class="text-[10px] text-slate-400 block">العضلة الأساسية (Primary):</span>
+                            <span id="modalPrimaryMuscle" class="font-extrabold text-emerald-400"></span>
+                        </div>
+                        <div class="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800">
+                            <span class="text-[10px] text-slate-400 block">العضلات المساعدة (Synergists):</span>
+                            <span id="modalSecondaryMuscle" class="font-extrabold text-sky-400"></span>
+                        </div>
+                    </div>
+                    <p id="modalAnatomyDetail" class="text-xs text-amber-100/90 bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-xl leading-relaxed"></p>
+                </div>
+
+                <div class="bg-slate-950/90 border border-slate-800 rounded-2xl p-3.5 space-y-1">
+                    <h4 class="text-xs font-extrabold text-white flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-check text-amber-400"></i>
+                        <span>الأداء الصحيح خلال الـ 3 جولات:</span>
+                    </h4>
+                    <p id="modalExerciseTips" class="text-xs text-slate-300 leading-relaxed"></p>
+                </div>
+
+                <a id="modalYoutubeBtn" href="#" target="_blank" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold text-xs py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition">
+                    <i class="fa-brands fa-youtube text-base"></i>
+                    <span>مشاهدة الفيديو العملي للتمرين على YouTube</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- REST TIMER MODAL -->
+    <div id="timerModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="luxury-card max-w-sm w-full rounded-3xl p-6 text-center border border-amber-500/40 space-y-5">
+            <div class="flex justify-between items-center">
+                <h3 class="font-extrabold text-base text-white flex items-center gap-2">
+                    <i class="fa-solid fa-stopwatch text-amber-400"></i>
+                    <span>مؤقت الراحة بين الجولات الثلاث</span>
+                </h3>
+                <button onclick="closeTimerModal()" class="text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="py-5">
+                <div id="timerDisplay" class="text-6xl font-black gold-gradient-text tracking-wider font-mono">01:30</div>
+                <p class="text-xs text-slate-400 mt-2">يعمل تلقائياً عند إنهاء أي جولة</p>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="setTimer(60)" class="py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-xs font-bold text-slate-200 border border-slate-700">60 ثانية</button>
+                <button onclick="setTimer(90)" class="py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-xs font-bold text-amber-300 border border-amber-500/40">90 ثانية</button>
+                <button onclick="setTimer(120)" class="py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-xs font-bold text-slate-200 border border-slate-700">120 ثانية</button>
+            </div>
+
+            <div class="flex gap-2">
+                <button id="startPauseTimerBtn" onclick="toggleTimer()" class="flex-1 py-3 rounded-xl gold-btn text-sm transition">
+                    بدء المؤقت
+                </button>
+                <button onclick="resetTimer()" class="px-4 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 font-bold text-sm border border-slate-800">
+                    إعادة
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SWAP DAYS MODAL -->
+    <div id="swapModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="luxury-card max-w-md w-full rounded-3xl p-5 border border-amber-500/40 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-extrabold text-base text-white flex items-center gap-2">
+                    <i class="fa-solid fa-right-left text-amber-400"></i>
+                    <span>تبديل أيام التمرين الثلاثة</span>
+                </h3>
+                <button onclick="closeSwapModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-xs font-bold text-slate-400 block mb-1">اليوم الأول</label>
+                    <select id="swapDay1" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white">
+                        <option value="monday">الإثنين</option>
+                        <option value="tuesday">الثلاثاء</option>
+                        <option value="wednesday">الأربعاء</option>
+                        <option value="thursday">الخميس</option>
+                        <option value="friday">الجمعة</option>
+                        <option value="saturday">السبت</option>
+                        <option value="sunday">الأحد</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-400 block mb-1">اليوم الثاني</label>
+                    <select id="swapDay2" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white">
+                        <option value="monday">الإثنين</option>
+                        <option value="tuesday">الثلاثاء</option>
+                        <option value="wednesday">الأربعاء</option>
+                        <option value="thursday" selected>الخميس</option>
+                        <option value="friday">الجمعة</option>
+                        <option value="saturday">السبت</option>
+                        <option value="sunday">الأحد</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="confirmSwapDays()" class="w-full py-3 rounded-xl gold-btn text-sm transition">
+                تبديل اليومين الآن
+            </button>
+        </div>
+    </div>
+
+    <!-- ADD EXERCISE MODAL -->
+    <div id="addExerciseModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="luxury-card max-w-md w-full rounded-3xl p-5 border border-amber-500/40 space-y-3 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-extrabold text-base text-white">إضافة تمرين جديد مع تفاصيل المنطقة المستهدفة</h3>
+                <button onclick="closeAddExerciseModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs font-bold text-slate-400 block mb-1">اسم التمرين</label>
+                    <input id="newExName" type="text" placeholder="مثال: تفتيح صدر بالكابل (Cable Crossover)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-xs font-bold text-slate-400 block mb-1">العضلة الأساسية المستهدفة</label>
+                        <input id="newExMuscle" type="text" placeholder="مثال: الصدر السفلي والداخلي" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-400 block mb-1">العضلات المساعدة</label>
+                        <input id="newExSecondary" type="text" placeholder="مثال: الكتف الأمامي" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-400 block mb-1">تفاصيل المنطقة المستهدفة وزاوية العزل</label>
+                    <input id="newExTargetDetail" type="text" placeholder="مثال: يركز على الألياف الداخلية لخط منتصف الصدر ويزيد التحديد" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-xs font-bold text-slate-400 block mb-1">الجولات × العدات</label>
+                        <input id="newExReps" type="text" value="3 جولات × 10-12" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-400 block mb-1">رابط صورة التمرين</label>
+                        <input id="newExImage" type="url" placeholder="رابط صورة اختياري" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-400 block mb-1">رابط فيديو الشرح (اختياري)</label>
+                    <input id="newExVideo" type="url" placeholder="رابط YouTube أو MP4" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-400 block mb-1">نصائح الأداء الصحيح</label>
+                    <textarea id="newExTips" rows="2" placeholder="حافظ على ثبات الكوعين وتحكم في الوزن..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white"></textarea>
+                </div>
+                <button onclick="saveNewExercise()" class="w-full py-3 rounded-xl gold-btn text-sm transition">إضافة إلى التمارين</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD TASK MODAL -->
+    <div id="addTaskModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="luxury-card max-w-md w-full rounded-3xl p-5 border border-amber-500/40 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-extrabold text-base text-white">إضافة مهمة لجدول نهاري</h3>
+                <button onclick="closeAddTaskModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs font-bold text-slate-400 block mb-1">الوقت</label>
+                    <input id="newTaskTime" type="time" value="16:00" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-400 block mb-1">عنوان المهمة</label>
+                    <input id="newTaskTitle" type="text" placeholder="مثال: مراجعة الفيزياء / وجبة بعد التمرين" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-400 block mb-1">التصنيف</label>
+                    <select id="newTaskCategory" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white">
+                        <option value="دراسة">📚 دراسة ومراجعة</option>
+                        <option value="تغذية">🥗 تغذية ووجبات</option>
+                        <option value="رياضة">🏋️‍♂️ رياضة ونادي</option>
+                        <option value="شخصي">⚡ مهام شخصية</option>
+                    </select>
+                </div>
+                <button onclick="saveNewTask()" class="w-full py-3 rounded-xl gold-btn text-sm transition">حفظ المهمة</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================================
+        // 1. ORDERED MEMBERS CONFIGURATION (NO PRE-VISIBLE PASSWORDS!)
+        // =========================================================================
+        const MEMBER_ORDER = ['ishak', 'issam', 'youness', 'yassin'];
+        const MEMBERS_META = {
+            ishak:   { id: 'ishak',   isAdmin: true,  name: 'Ishak',   arName: 'إسحاق • المدير', initials: 'IS', defaultAge: 17, defaultWeight: 68, defaultHeight: 176 },
+            issam:   { id: 'issam',   isAdmin: false, name: 'Issam',   arName: 'عصام',           initials: 'IC', defaultAge: 17, defaultWeight: 74, defaultHeight: 178 },
+            youness: { id: 'youness', isAdmin: false, name: 'Youness', arName: 'يونس',           initials: 'YN', defaultAge: 17, defaultWeight: 65, defaultHeight: 173 },
+            yassin:  { id: 'yassin',  isAdmin: false, name: 'Yassin',  arName: 'ياسين',          initials: 'YS', defaultAge: 18, defaultWeight: 78, defaultHeight: 180 }
+        };
+
+        /*__BAKED_DATA_START__*/
+        const BAKED_PROFILES_DATA = null;
+        /*__BAKED_DATA_END__*/
+
+        const dayOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        const jsDayMap = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+
+        let currentUserKey = null;
+        let masterAdminSession = false;
+        let pendingAuthUserKey = null;
+        let currentDayKey = jsDayMap[new Date().getDay()] || 'monday';
+        let activeTab = 'workout';
+        let currentTrackIndex = 0;
+
+        // =========================================================================
+        // 2. BIOMETRIC & AGE ENGINE (MIFFLIN-ST JEOR + ANATOMY WORKOUT BUILDER)
+        // =========================================================================
+        function analyzeBodyStats(weight, heightCm, age = 17) {
+            const hMeters = heightCm / 100;
+            const bmi = +(weight / (hMeters * hMeters)).toFixed(1);
+            const bmr = (10 * weight) + (6.25 * heightCm) - (5 * age) + 5;
+            const maintenanceCalories = Math.round(bmr * 1.55);
+
+            const ageNote = age <= 19
+                ? `مرحلة بناء ونمو هرموني ممتازة (${age} سنة) — ركّز على الأداء السليم والنوم 8 ساعات`
+                : `مرحلة القوة العضلية الكاملة (${age} سنة) — تدرّج في الأوزان كل أسبوع`;
+
+            let modeTitle = '';
+            let repScheme = '';
+            let restRecommended = 90;
+            let calories = maintenanceCalories;
+            let protein = Math.round(weight * 2.0);
+
+            if (bmi < 20.0) {
+                modeTitle = 'تضخيم وبناء عضلي صافي (Lean Bulk)';
+                repScheme = '3 جولات × 8-10 عدات';
+                restRecommended = 105;
+                calories = maintenanceCalories + 350;
+            } else if (bmi <= 24.9) {
+                modeTitle = 'قوة وضخامة متناسقة (Athletic Hypertrophy)';
+                repScheme = '3 جولات × 10-12 عدة';
+                restRecommended = 90;
+                calories = maintenanceCalories + 150;
+            } else {
+                modeTitle = 'تنشيف وبناء عضل صافي (Shred & Recomp)';
+                repScheme = '3 جولات × 12-15 عدة';
+                restRecommended = 60;
+                calories = Math.max(1650, maintenanceCalories - 400);
+                protein = Math.round(weight * 2.2);
+            }
+
+            return { bmi, modeTitle, repScheme, restRecommended, calories, protein, ageNote };
+        }
+
+        function scaleWeight(weightKg, factor, age = 17) {
+            const ageMultiplier = age < 17 ? 0.90 : 1.0;
+            return Math.max(5, Math.round((weightKg * factor * ageMultiplier) / 2.5) * 2.5);
+        }
+
+        function buildPersonalizedWeek(weight, height, age = 17) {
+            const analysis = analyzeBodyStats(weight, height, age);
+            const r = analysis.repScheme;
+
+            return {
+                monday: {
+                    id: 'monday',
+                    shortName: 'الإثنين 🔥',
+                    isGymDay: true,
+                    badge: `الحصة 1 من 3 • يوم الدفع (Push) • ${analysis.modeTitle}`,
+                    title: 'الصدر + الأكتاف + الترايسبس (3 جولات)',
+                    subtitle: `مفصّل لوزن ${weight}kg • طول ${height}cm • عمر ${age} سنة`,
+                    exercises: [
+                        {
+                            id: 'm1',
+                            name: 'ضغط صدر بالبار مستوي (Barbell Bench Press)',
+                            muscle: 'الصدر الأوسط (Pectoralis Major - Sternal)',
+                            secondaryMuscle: 'الكتف الأمامي + الترايسبس',
+                            targetDetail: 'يستهدف الألياف الوسطى العريضة المسؤولة عن سماكة وحجم عضلة الصدر بالكامل.',
+                            reps: r,
+                            weight: scaleWeight(weight, 0.75, age),
+                            setsDone: [false, false, false],
+                            image: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=900&q=80',
+                            videoQuery: 'Barbell Bench Press proper form muscle anatomy',
+                            tips: 'ثبّت لوحي الكتف على البنش، انزل بالبار ببطء حتى منتصف الصدر مع زاوية كوع 45 درجة، ثم ادفع للأعلى.'
+                        },
+                        {
+                            id: 'm2',
+                            name: 'ضغط صدر علوي بالدمبل (Incline Dumbbell Press)',
+                            muscle: 'الصدر العلوي (Clavicular Pectoralis)',
+                            secondaryMuscle: 'الدالية الأمامية للكتف + الترايسبس',
+                            targetDetail: 'يركز على الجزء العلوي من الصدر تحت الترقوة مباشرة ليمنح الصدر مظهراً ممتلئاً ومرفوعاً.',
+                            reps: r,
+                            weight: scaleWeight(weight, 0.28, age),
+                            setsDone: [false, false, false],
+                            image: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=900&q=80',
+                            videoQuery: 'Incline Dumbbell Press proper form anatomy',
+                            tips: 'اضبط زاوية المقعد على 30 درجة فقط؛ انزل بالدمبلز بتحكم كامل لتحفيز ألياف الصدر العلوي.'
+                        },
+                        {
+                            id: 'm3',
+                            name: 'تفتيح صدر على جهاز الفراشة أو الكابل (Pec Deck / Cable Fly)',
+                            muscle: 'منتصف الصدر والألياف الداخلية (Inner Chest)',
+                            secondaryMuscle: 'الكتف الأمامي (ثبات)',
+                            targetDetail: 'تمرين عزل خالص يقوم بتمديد ألياف الصدر لأقصى مدى ثم عصرها لإبراز الخط الفاصل في منتصف الصدر.',
+                            reps: '3 جولات × 12-15 عدة',
+                            weight: scaleWeight(weight, 0.55, age),
+                            setsDone: [false, false, false],
+                            image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=900&q=80',
+                            videoQuery: 'Pec Deck Chest Fly proper form anatomy',
+                            tips: 'أبقِ انحناءً بسيطاً في الكوعين واجمع ذراعيك أمام صدرك مع الثبات ثانية كاملة في قمة الانقباض.'
+                        },
+                        {
+                            id: 'm4',
+                            name: 'ضغط أكتاف بالدمبل جالساً + رفرفة جانبي (Shoulder Press & Lateral Raise)',
+                            muscle: 'الكتف الأمامي والجانبي (Anterior & Lateral Deltoid)',
+                            secondaryMuscle: 'الترابيس العلوي + الترايسبس',
+                            targetDetail: 'يبني الكتلة الكروية للكتف ويمنح الجسم عرضاً واضحاً من الأعلى (V-Taper).',
+                            reps: r,
+                            weight: scaleWeight(weight, 0.22, age),
+                            setsDone: [false, false, false],
+                            image: 'https://images.unsplash.com/photo-1532029837206-abbe2b7620e3?auto=format&fit=crop&w=900&q=80',
+                            videoQuery: 'Seated Dumbbell Shoulder Press & Lateral Raise anatomy',
+                            tips: 'ادفع الدمبلز للأعلى دون ضربهما ببعض، وفي الرفرفة الجانبية ارفع الكوعين لمستوى الكتف بتحكم.'
+                        },
+                        {
+                            id: 'm5',
+                            name: 'دفع الحبل للترايسبس بالكابل (Triceps Rope Pushdown)',
+                            muscle: 'الترايسبس — الرأس الجانبي والوسطي (Lateral & Medial Head)',
+                            secondaryMuscle: 'عضلات الساعد المثبتة',
+                            targetDetail: 'يعزل الرأس الجانبي الخارجي للترايسبس الذي يعطي الذراع شكل حدوة الحصان والضخامة الجانبية.',
+                            reps: '3 جولات × 12 عدة',
+                            weight: scaleWeight(weight, 0.40, age),
+                            setsDone: [false, false, false],
+                            image: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=900&q=80',
+                            videoQuery: 'Triceps Rope Pushdown anatomy form',
+                            tips: 'ثبّت المرفقين بجانب جذعك تماماً وافتح طرفي الحبل للخارج في أسفل الحركة.'
+                        }
+                    ],
+                    tasks: [
+                        { id: 't1', time: '07:30', title: 'وجبة فطور غنية بالبروتين والشوفان', category: 'تغذية', done: false },
+                        { id: 't2', time: '08:30', title: 'الفترة الصباحية (دراسة / التزامات)', category: 'دراسة', done: false },
+                        { id: 't3', time: '16:30', title: 'وجبة الطاقة قبل التمرين (كاربوهيدرات + بروتين)', category: 'تغذية', done: false },
+                        { id: 't4', time: '18:00', title: 'حصة النادي (1/3): يوم الدفع (3 جولات لكل تمرين)', category: 'رياضة', done: false },
+                        { id: 't5', time: '20:30', title: 'وجبة الاستشفاء + مراجعة المساء', category: 'دراسة', done: false }
+                    ]
+                },
+                tuesday: {
+                    id: 'tuesday',
+                    shortName: 'الثلاثاء 💤',
+                    isGymDay: false,
+                    badge: 'يوم راحة واستشفاء عضلي',
+                    title: 'راحة من النادي وتنظيم النهار',
+                    subtitle: 'العضلات تنمو وتزداد قوة أثناء يوم الراحة',
+                    exercises: [
+                        {
+                            id: 'tu1',
+                            name: 'إطالات مرونة واستشفاء عضلي (Mobility & Recovery)',
+                            muscle: 'ألياف الصدر والكتف والعمود الفقري',
+                            secondaryMuscle: 'مفاصل الكتف والورك',
+                            targetDetail: 'تخفيف الشد العضلي بعد حصة الدفع وزيادة تدفق الدم المحمل بالأكسجين للعضلات.',
+                            reps: '3 جولات × 5 دقائق',
+                            weight: 0,
+                            setsDone: [false, false, false],
+                            image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=900&q=80',
+                            videoQuery: '15 min upper body mobility recovery routine',
+                            tips: 'تنفس بعمق أثناء الإطالة واشرب كمية كافية من الماء طوال اليوم.'
+                        }
+                    ],
+                    tasks: [
+                        { id: 'tu_t1', time: '08:00', title: 'الفطور الصباحي المتوازن', category: 'تغذية', done: false },
+                        { id: 'tu_t2', time: '17:00', title: 'حصة مراجعة مركزة وإنهاء المهام', category: 'دراسة', done: false },
+                        { id: 'tu_t3', time: '20:00', title: 'عشاء عالي البروتين + راحة', category: 'تغذية', done: false }
+                    ]
+                },
+                wednesday: {
+                    id: 'wednesday',
+                    shortName: 'الأربعاء 🔥',
+                    isGymDay: true,
+                    badge: `الحصة 2 من 3 • يوم السحب (Pull) • ${analysis.modeTitle}`,
+                    title: 'الظهر + البايسبس + الكتف الخلفي (3 جولات)',
+                    subtitle: `مفصّل لوزن ${weight}kg • طول ${height}cm • عمر ${age} سنة`,
+                    exercises: [
+                        {
+                            id: 'w1',
+                            name: 'سحب عالي واسع للكابل (Wide-Grip Lat Pulldown)',
+                            muscle: 'العضلة الظهرية العريضة — المجنص (Latissimus Dorsi)',
+                            secondaryMuscle: 'البايسبس + المدورة الكبرى (Teres Major)',
+                            targetDetail: 'يستهدف الجزء العلوي والخارجي من المجنص ليعطي الظهر العرض الشهير على شكل حرف V.',
+                            reps: r,
+                            weight: scaleWeight(weight, 0.75, age),
+                            setsDone: [false, false, false],
+                            image: 'https://images.unsplash.com/photo-1605296867304-46d5465a13f1?auto=format&fit=crop&w=900&q=80',
+                            videoQuery: 'Lat Pulldown proper form muscle anatomy',
+                            tips: 'اسحب البار نحو أعلى الصدر بقيادة المرفقين للأسفل مع إبقاء الصدر مرفوعاً.'
+                        },
+                        {
+                            id: 'w2',
+                            name: 'تجديف بالبار أو الجهاز (Barbell / Chest-Supported Row)',
+                            muscle: 'وسط الظهر والمعينيات (Rhomboids & Middle Traps)',
+                            secondaryMuscle: 'المجنص السفلي + الكتف الخلفي + البايسبس',
+                            targetDetail: 'يبني السماكة والعمق العضلي في منتصف الظهر ويقوي العضلات المحيطة بالعمود الفقري.',
+                            reps: r,
+                            weight: scaleWeight(weight, 0.68, age),
+                            setsDone: [false, false, false],
+                            image: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&w=900&q=80',
+                            videoQuery: 'Barbell Row muscle anatomy proper form',
+                            tips: 'حافظ على استقامة الظهر واسحب الوزن نحو السرة مع ضم لوحي الكتف بقوة في الأعلى.'
+                        },
+                        {
+                            id: 'w3',
+                            name: 'سحب أرضي ضيق بالكابل (Seated Cable Row)',
+                            muscle: 'المجنص السفلي وسمك الظهر (Lower Lats & Mid-Back)',
+                            secondaryMuscle: 'البايسبس + الساعد',
+                            targetDetail: 'يستهدف الألياف السفلية للظهر ويمنح الظهر كثافة عضلية من الأسفل إلى الأعلى.',
+                            reps: r,
+                            weight: scaleWeight(weight, 0.70, age),
+                            setsDone: [false, false, false],
+                            image: 'https://images.unsplash.com/photo-1599058917212-d750089bc07e?auto=format&fit=crop&w=900&q=80',
+                            videoQuery: 'Seated Cable Row anatomy tutorial',
+                            tips: 'لا تتأرجح بظهرك؛ اسحب المقبض نحو البطن وتحكم في الوزن أثناء العودة.'
+                        },
+                        {
+                            id: 'w4',
+                            name: 'سحب الحبل للوجه (Face Pulls)',
+                            muscle: 'الكتف الخلفي والكفة المدورة (Posterior Deltoid & Rotator Cuff)',
+                            secondaryMuscle: 'الترابيس الأوسط',
+                            targetDetail: 'يكمّل الشكل ثلاثي الأبعاد للكتف من الخلف ويحمي مفصل الكتف من الإصابات.',
+                            reps: '3 جولات × 15 عدة',
+                            weight: scaleWeight(weight, 0.35, age),
+                            setsDone: [false, false, false],
+                            image: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=900&q=80',
+                            videoQuery: 'Cable Face Pull posterior deltoid anatomy',
+                            tips: 'اسحب الحبل باتجاه الجبهة مع فتح المرفقين للخارج وتدوير الكتف.'
+                        },
+                        {
+                            id: 'w5',
+                            name: 'مرجحة بايسبس بالبار الزجزاج + دمبل مطرقة (EZ-Bar & Hammer Curl)',
+                            muscle: 'البايسبس (الرأس الطويل والقصير) + العضلة العضدية (Brachialis)',
+                            secondaryMuscle: 'عضلات الساعد (Brachioradialis)',
+                            targetDetail: 'يبني قمة وتكوير البايسبس من الأمام مع زيادة عرض الذراع والساعد بفضل قبضة المطرقة.',
+                            reps: r,
+                            weight: scaleWeight(weight, 0.38, age),
+                            setsDone: [false, false, false],
+                            image: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=900&q=80',
+                            videoQuery: 'EZ Bar Bicep Curl & Hammer Curl anatomy',
+                            tips: 'ثبّت الكوعين بجانب جذعك تماماً وانزل بالوزن في 3 ثوانٍ كاملة.'
+                        }
+                    ],
+                    tasks: [
+                        { id: 'w_t1', time: '08:00', title: 'وجبة الفطور والانطلاق للدراسة', category: 'تغذية', done: false },
+                        { id: 'w_t2', time: '16:30', title: 'وجبة ما قبل التمرين', category: 'تغذية', done: false },
+                        { id: 'w_t3', time: '18:00', title: 'حصة النادي (2/3): يوم السحب (ظهر وبايسبس)', category: 'رياضة', done: false },
+                        { id: 'w_t4', time: '20:30', title: 'مراجعة المساء وتحضير الدروس', category: 'دراسة', done: false }
+                    ]
+                },
+                thursday: {
+                    id: 'thursday',
+                    shortName: 'الخميس 💤',
+                    isGymDay: false,
+                    badge: 'يوم راحة واستشفاء',
+                    title: 'راحة من النادي ومراجعة الدروس',
+                    subtitle: 'استشفاء الجهاز العصبي والعضلي',
+                    exercises: [
+                        {
+                            id: 'th1',
+                            name: 'مشي خفيف وإطالات للظهر والذراعين',
+                            muscle: 'ألياف الظهر والبايسبس',
+                            secondaryMuscle: 'العمود الفقري',
+                            targetDetail: 'إرخاء العضلات الساحبة بعد حصة الأربعاء وتنشيط الدورة الدموية.',
+                            reps: '3 جولات × 5 دقائق',
+                            weight: 0,
+                            setsDone: [false, false, false],
+                            image: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&w=900&q=80',
+                            videoQuery: 'Back and biceps recovery stretch',
+                            tips: 'اشرب 3 لترات ماء اليوم وتناول احتياجك الكامل من البروتين.'
+                        }
+                    ],
+                    tasks: [
+                        { id: 'th_t1', time: '08:30', title: 'الفترة الدراسية الصباحية', category: 'دراسة', done: false },
+                        { id: 'th_t2', time: '17:30', title: 'مراجعة المواد الأساسية', category: 'دراسة', done: false }
+                    ]
+                },
+                friday: {
+                    id: 'friday',
+                    shortName: 'الجمعة 🕌',
+                    isGymDay: false,
+                    badge: 'يوم الجمعة • راحة واستشفاء تام',
+                    title: 'يوم الجمعة والراحة الأسبوعية',
+                    subtitle: 'راحة تامة من المجهود البدني وتجديد النشاط',
+                    exercises: [
+                        {
+                            id: 'fr1',
+                            name: 'استرخاء وإطالات مرونة خفيفة (Full Body Stretch)',
+                            muscle: 'كامل مفاصل وعضلات الجسم',
+                            secondaryMuscle: 'الجهاز العصبي المركزي',
+                            targetDetail: 'تهيئة المفاصل والأوتار لحصة الأرجل القوية يوم السبت.',
+                            reps: '3 جولات × 5 دقائق',
+                            weight: 0,
+                            setsDone: [false, false, false],
+                            image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=900&q=80',
+                            videoQuery: 'Full body mobility stretch routine',
+                            tips: 'استغل يوم الجمعة في الراحة الجسدية والذهنية والتغذية المتوازنة.'
+                        }
+                    ],
+                    tasks: [
+                        { id: 'fr_t1', time: '10:00', title: 'مراجعة صباحية هادئة', category: 'دراسة', done: false },
+                        { id: 'fr_t2', time: '12:30', title: 'صلاة الجمعة والغداء العائلي', category: 'شخصي', done: false },
+                        { id: 'fr_t3', time: '18:00', title: 'جلسة مع الأصدقاء / وقت حر', category: 'شخصي', done: false }
+                    ]
+                },
+                saturday: {
+                    id: 'saturday',
+                    shortName: 'السبت 🔥',
+                    isGymDay: true,
+                    badge: `الحصة 3 من 3 • الأرجل والبطن (Legs & Abs) • ${analysis.modeTitle}`,
+                    title: 'الأرجل الشاملة + عضلات البطن (3 جولات)',
+                    subtitle: `مفصّل لوزن ${weight}kg • طول ${height}cm • عمر ${age} سنة`,
+                    exercises: [
+                        {
+                            id: 'sa1',
+                            name: 'سكوات بالبار أو الهاك سكوات (Barbell / Hack Squat)',
+                            muscle: 'الفخذ الأمامي رباعي الرؤوس (Quadriceps) + الأرداف (Glutes)',
+                            secondaryMuscle: 'الفخذ الخلفي + عضلات الجذع وأسفل الظهر',
+                            targetDetail: 'أقوى تمرين بنائي للجسم السفلي؛ يستهدف الرؤوس الأربعة للفخذ الأمامي ويحفز إفراز هرمون النمو الطبيعي.',
+                            reps: r,
+                            weight: scaleWeight(weight, 1.0, age),
+                            setsDone: [false, false, false],
+                            image: 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&w=900&q=80',
+                            videoQuery: 'Barbell Squat muscle anatomy proper form',
+                            tips: 'انزل بتحكم حتى يصبح الفخذ موازياً للأرض مع دفع الركبتين في اتجاه أصابع القدم.'
+                        },
+                        {
+                            id: 'sa2',
+                            name: 'دفع الأرجل على الجهاز (Leg Press)',
+                            muscle: 'الفخذ الأمامي الخارجي والداخلي (Vastus Lateralis & Medialis)',
+                            secondaryMuscle: 'الأرداف + الفخذ الخلفي',
+                            targetDetail: 'يسمح بتحميل أوزان قوية بأمان تام على أسفل الظهر لتضخيم الفخذ الأمامي بالكامل.',
+                            reps: r,
+                            weight: scaleWeight(weight, 1.8, age),
+                            setsDone: [false, false, false],
+                            image: 'https://images.unsplash.com/photo-1434608519344-49d77a699e1d?auto=format&fit=crop&w=900&q=80',
+                            videoQuery: 'Leg Press anatomy proper form',
+                            tips: 'ضع قدميك بعرض الكتفين ولا تقفل الركبتين بالكامل في أعلى الحركة.'
+                        },
+                        {
+                            id: 'sa3',
+                            name: 'رفرفة أرجل خلفي على الجهاز (Seated / Lying Leg Curl)',
+                            muscle: 'الفخذ الخلفي (Hamstrings — Biceps Femoris)',
+                            secondaryMuscle: 'عضلة السمانة العلوية',
+                            targetDetail: 'يعزل عضلات الفخذ الخلفي المسؤولة عن توازن الركبة وجمالية شكل الرجل من الجانب والخلف.',
+                            reps: r,
+                            weight: scaleWeight(weight, 0.55, age),
+                            setsDone: [false, false, false],
+                            image: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=900&q=80',
+                            videoQuery: 'Leg Curl hamstring anatomy tutorial',
+                            tips: 'اثبت ثانية واحدة في قمة الانقباض وارجع بالوزن ببطء.'
+                        },
+                        {
+                            id: 'sa4',
+                            name: 'رفع السمانة واقفاً (Standing Calf Raises)',
+                            muscle: 'عضلة السمانة التوأمية والنعلية (Gastrocnemius & Soleus)',
+                            secondaryMuscle: 'أوتار الكاحل',
+                            targetDetail: 'يستهدف الرأس الداخلي والخارجي لعضلة البطة (السمانة) ليمنح الساق مظهرها الرياضي المتناسق.',
+                            reps: '3 جولات × 15-20 عدة',
+                            weight: scaleWeight(weight, 0.8, age),
+                            setsDone: [false, false, false],
+                            image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=900&q=80',
+                            videoQuery: 'Standing Calf Raise anatomy form',
+                            tips: 'انزل بالكعب لأسفل مدى ممكن للتمدد، ثم اصعد لأعلى نقطة على أطراف الأصابع.'
+                        },
+                        {
+                            id: 'sa5',
+                            name: 'طحن البطن بالكابل أو رفع الأرجل (Cable Crunch / Hanging Leg Raises)',
+                            muscle: 'عضلات البطن المستقيمة العلوية والسفلية (Rectus Abdominis - 6 Pack)',
+                            secondaryMuscle: 'عضلات البطن الجانبية (Obliques)',
+                            targetDetail: 'يستهدف تقسيم وإبراز عضلات البطن العلوية والسفلية وتقوية حزام الجذع.',
+                            reps: '3 جولات × 15 عدة',
+                            weight: scaleWeight(weight, 0.35, age),
+                            setsDone: [false, false, false],
+                            image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=900&q=80',
+                            videoQuery: 'Cable Crunch & Leg Raise abs anatomy',
+                            tips: 'ازفر الهواء بالكامل عند الانقباض وركز على ثني العمود الفقري وعصر البطن.'
+                        }
+                    ],
+                    tasks: [
+                        { id: 'sa_t1', time: '09:30', title: 'مراجعة شاملة للمواد العلمية', category: 'دراسة', done: false },
+                        { id: 'sa_t2', time: '17:30', title: 'حصة النادي (3/3): الأرجل والبطن (3 جولات)', category: 'رياضة', done: false },
+                        { id: 'sa_t3', time: '20:30', title: 'وجبة بعد التمرين + استراحة المساء', category: 'تغذية', done: false }
+                    ]
+                },
+                sunday: {
+                    id: 'sunday',
+                    shortName: 'الأحد 💤',
+                    isGymDay: false,
+                    badge: 'راحة واستشفاء تام',
+                    title: 'يوم الراحة والتحضير للأسبوع الجديد',
+                    subtitle: 'استشفاء كامل ونوم مبكر',
+                    exercises: [
+                        {
+                            id: 'su1',
+                            name: 'استشفاء تام وتمدد خفيف للعضلات',
+                            muscle: 'استشفاء شامل للجسم',
+                            secondaryMuscle: 'الجهاز العصبي والمفاصل',
+                            targetDetail: 'إعادة ملء مخازن الجليكوجين في العضلات استعداداً لأسبوع جديد قوي.',
+                            reps: '3 جولات × 5 دقائق',
+                            weight: 0,
+                            setsDone: [false, false, false],
+                            image: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&w=900&q=80',
+                            videoQuery: 'Full body recovery stretch',
+                            tips: 'جهز خطة أسبوعك القادم واحرص على النوم المبكر.'
+                        }
+                    ],
+                    tasks: [
+                        { id: 'su_t1', time: '10:00', title: 'مراجعة دروس الأسبوع', category: 'دراسة', done: false },
+                        { id: 'su_t2', time: '16:00', title: 'ترتيب أهداف الأسبوع الجديد', category: 'شخصي', done: false },
+                        { id: 'su_t3', time: '22:00', title: 'نوم مبكر (8 ساعات)', category: 'شخصي', done: false }
+                    ]
+                }
+            };
+        }
+
+        function getDefaultPlaylist() {
+            return [
+                {
+                    id: 'p1',
+                    title: 'نشيد حماسي للتمرين — قوة وإصرار (بدون إيقاع)',
+                    category: 'أناشيد حماسية',
+                    url: '',
+                    isYoutubeSearch: true,
+                    searchQuery: 'أناشيد حماسية للرياضة والجيم بدون موسيقى'
+                },
+                {
+                    id: 'p2',
+                    title: 'تلاوة خاشعة تبعث الطمأنينة والتركيز',
+                    category: 'قرآن كريم',
+                    url: '',
+                    isYoutubeSearch: true,
+                    searchQuery: 'تلاوة هادئة للتركيز والدراسة'
+                },
+                {
+                    id: 'p3',
+                    title: 'مقطع صوتي تجريبي (إيقاع هادئ للتركيز)',
+                    category: 'موسيقى / تحفيز',
+                    url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+                    isYoutubeSearch: false
+                }
+            ];
+        }
+
+        // =========================================================================
+        // 3. INITIALIZE PROFILES (PIN = NULL SO EACH CREATES THEIR OWN PASSWORD!)
+        // =========================================================================
+        function buildInitialProfilesMap() {
+            if (BAKED_PROFILES_DATA) return JSON.parse(JSON.stringify(BAKED_PROFILES_DATA));
+            const map = {};
+            MEMBER_ORDER.forEach(key => {
+                const m = MEMBERS_META[key];
+                map[key] = {
+                    id: key,
+                    isAdmin: m.isAdmin,
+                    name: m.name,
+                    arName: m.arName,
+                    initials: m.initials,
+                    photoData: '',
+                    photoUrl: '',
+                    pin: null, // Null initially: each person creates their own password!
+                    age: m.defaultAge,
+                    weight: m.defaultWeight,
+                    height: m.defaultHeight,
+                    updatedAt: 1000,
+                    weekData: buildPersonalizedWeek(m.defaultWeight, m.defaultHeight, m.defaultAge),
+                    playlist: getDefaultPlaylist()
+                };
+            });
+            return map;
+        }
+
+        let allProfiles = JSON.parse(localStorage.getItem('royalGymProfiles_v7_private')) || buildInitialProfilesMap();
+
+        MEMBER_ORDER.forEach(key => {
+            if (!allProfiles[key]) {
+                allProfiles[key] = buildInitialProfilesMap()[key];
+            }
+        });
+
+        // GunDB Cloud Sync so once a member creates their password, it locks across all phones!
+        let gunDB = null;
+        let cloudRoom = null;
+        try {
+            gunDB = Gun({
+                peers: [
+                    'https://gun-manhattan.herokuapp.com/gun',
+                    'https://relay.peer.ooo/gun'
+                ]
+            });
+            cloudRoom = gunDB.get('proovip_royal_club_ishak_2026_sync_v7_private');
+
+            MEMBER_ORDER.forEach(key => {
+                cloudRoom.get(key).on((encodedJson) => {
+                    if (!encodedJson || typeof encodedJson !== 'string') return;
+                    try {
+                        const incoming = JSON.parse(encodedJson);
+                        const localTime = (allProfiles[key] && allProfiles[key].updatedAt) || 0;
+                        if (incoming && incoming.updatedAt && incoming.updatedAt > localTime) {
+                            allProfiles[key] = incoming;
+                            localStorage.setItem('royalGymProfiles_v7_private', JSON.stringify(allProfiles));
+                            if (!currentUserKey) {
+                                renderAuthScreen();
+                            } else if (currentUserKey === key) {
+                                renderUserHeaderAndStats();
+                                renderDaysBar();
+                                renderCurrentDay();
+                                renderPlaylist();
+                            }
+                            if (masterAdminSession) renderAdminPanel();
+                        }
+                    } catch (e) {}
+                });
+            });
+        } catch (err) {}
+
+        function saveAllProfiles(specificKey = null) {
+            const now = Date.now();
+            if (specificKey && allProfiles[specificKey]) {
+                allProfiles[specificKey].updatedAt = now;
+            } else if (currentUserKey && allProfiles[currentUserKey]) {
+                allProfiles[currentUserKey].updatedAt = now;
+            }
+            localStorage.setItem('royalGymProfiles_v7_private', JSON.stringify(allProfiles));
+            pushAllToCloud(false, specificKey || currentUserKey);
+        }
+
+        function pushAllToCloud(showAlert = false, onlyKey = null) {
+            if (!cloudRoom) return;
+            try {
+                const keys = onlyKey ? [onlyKey] : MEMBER_ORDER;
+                keys.forEach(k => {
+                    if (allProfiles[k]) {
+                        allProfiles[k].updatedAt = Date.now();
+                        cloudRoom.get(k).put(JSON.stringify(allProfiles[k]));
+                    }
+                });
+                if (showAlert) {
+                    alert('تمت المزامنة السحابية لجميع الحسابات بنجاح! ☁️');
+                }
+            } catch (e) {}
+        }
+
+        function exportBakedHtmlFile() {
+            const currentHtml = document.documentElement.outerHTML;
+            const jsonString = JSON.stringify(allProfiles);
+            const replacement = `/*__BAKED_DATA_START__*/\n        const BAKED_PROFILES_DATA = ${jsonString};\n        /*__BAKED_DATA_END__*/`;
+            const updatedHtml = '<!DOCTYPE html>\n' + currentHtml.replace(
+                /\/\*__BAKED_DATA_START__\*\/[\s\S]*?\/\*__BAKED_DATA_END__\*\//,
+                replacement
+            );
+
+            const blob = new Blob([updatedHtml], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'index.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // =========================================================================
+        // 4. AUTH SCREEN (NO PASSWORDS SHOWN ON CARDS; EACH CREATES THEIR OWN)
+        // =========================================================================
+        function getAvatarHTML(profileOrMeta) {
+            const photo = profileOrMeta.photoData || profileOrMeta.photoUrl;
+            const initials = profileOrMeta.initials || (profileOrMeta.name ? profileOrMeta.name.slice(0, 2).toUpperCase() : 'VIP');
+            if (photo) {
+                return `<img src="${photo}" alt="${profileOrMeta.name}" class="w-full h-full object-cover">`;
+            }
+            return `<span>${initials}</span>`;
+        }
+
+        function togglePinVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye-slash';
+            }
+        }
+
+        function renderAuthScreen() {
+            const grid = document.getElementById('profilesGrid');
+            grid.innerHTML = '';
+
+            MEMBER_ORDER.forEach(key => {
+                const prof = allProfiles[key];
+                const isAdmin = key === 'ishak';
+                const hasPin = Boolean(prof && prof.pin);
+
+                const card = document.createElement('button');
+                card.onclick = () => selectMemberCard(key);
+                card.className = `luxury-card rounded-3xl p-4 sm:p-5 text-center transition hover:scale-[1.02] border ${
+                    isAdmin ? 'border-amber-400/80 gold-border-glow' : 'border-amber-500/20 hover:border-amber-400'
+                } flex flex-col items-center space-y-2.5 group relative overflow-hidden`;
+
+                card.innerHTML = `
+                    ${isAdmin ? '<span class="absolute top-2.5 left-2.5 text-[9px] font-black bg-amber-400 text-black px-2 py-0.5 rounded-full shadow">👑 المدير العام</span>' : ''}
+                    <div class="w-16 h-16 rounded-2xl gold-btn flex items-center justify-center text-lg font-black shadow-lg group-hover:scale-105 transition overflow-hidden border-2 border-amber-300/60">
+                        ${getAvatarHTML(prof)}
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-white">${prof.name} <span class="text-amber-300 text-xs">(${prof.arName})</span></h3>
+                        <p class="text-[11px] text-slate-400 mt-0.5">
+                            ${prof.age || 17} سنة • ${prof.weight} kg • ${prof.height} cm
+                        </p>
+                    </div>
+                    ${hasPin
+                        ? `<span class="text-[10px] font-bold px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                               <i class="fa-solid fa-lock ml-1"></i>حساب محمي بكلمة مرور
+                           </span>`
+                        : `<span class="text-[10px] font-extrabold px-3 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/35">
+                               <i class="fa-solid fa-key ml-1"></i>اضغط لإنشاء كلمة المرور
+                           </span>`
+                    }
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function selectMemberCard(key) {
+            pendingAuthUserKey = key;
+            const prof = allProfiles[key];
+            const hasPin = Boolean(prof && prof.pin);
+
+            document.getElementById('selectedAvatarBox').innerHTML = getAvatarHTML(prof);
+            document.getElementById('selectedMemberTitle').textContent = `${prof.name} (${prof.arName})`;
+            document.getElementById('selectedAdminBadge').classList.toggle('hidden', key !== 'ishak');
+
+            const setupBox = document.getElementById('firstTimeSetupFields');
+            const pinInput = document.getElementById('pinInput');
+            pinInput.value = '';
+            document.getElementById('pinError').classList.add('hidden');
+
+            if (!hasPin) {
+                // First time: User creates their own password & can see it clearly while typing
+                setupBox.classList.remove('hidden');
+                document.getElementById('setupAgeInput').value = prof.age || 17;
+                document.getElementById('setupWeightInput').value = prof.weight;
+                document.getElementById('setupHeightInput').value = prof.height;
+                document.getElementById('selectedMemberSub').textContent = 'إنشاء كلمة المرور الخاصة بك لأول مرة';
+                document.getElementById('pinLabel').textContent = 'أنشئ كلمة مرور خاصة بك (4 أرقام أو أكثر)';
+                document.getElementById('authSubmitBtnText').textContent = 'حفظ كلمة المرور وتفعيل حسابي';
+                pinInput.type = 'text'; // Visible while creating at first!
+                document.getElementById('pinEyeIcon').className = 'fa-solid fa-eye';
+            } else {
+                // Already locked: User enters their secret password
+                setupBox.classList.add('hidden');
+                document.getElementById('selectedMemberSub').textContent = `${prof.age || 17} سنة • ${prof.weight}kg • ${prof.height}cm`;
+                document.getElementById('pinLabel').textContent = `أدخل كلمة المرور الخاصة بـ ${prof.name}`;
+                document.getElementById('authSubmitBtnText').textContent = 'فتح الحساب';
+                pinInput.type = 'password'; // Masked by default on login, with eye button available
+                document.getElementById('pinEyeIcon').className = 'fa-solid fa-eye-slash';
+            }
+
+            const modal = document.getElementById('pinModalOverlay');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => pinInput.focus(), 100);
+        }
+
+        function closePinBox() {
+            const modal = document.getElementById('pinModalOverlay');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            pendingAuthUserKey = null;
+        }
+
+        function handleAuthSubmit() {
+            if (!pendingAuthUserKey) return;
+            const prof = allProfiles[pendingAuthUserKey];
+            const pinVal = document.getElementById('pinInput').value.trim();
+            const errEl = document.getElementById('pinError');
+
+            if (pinVal.length < 4) {
+                errEl.textContent = 'يرجى إدخال كلمة مرور مكوّنة من 4 أرقام أو حروف على الأقل';
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            if (!prof.pin) {
+                // First-time password creation
+                const age = parseInt(document.getElementById('setupAgeInput').value) || prof.age || 17;
+                const w = parseFloat(document.getElementById('setupWeightInput').value) || prof.weight;
+                const h = parseFloat(document.getElementById('setupHeightInput').value) || prof.height;
+
+                prof.pin = pinVal;
+                prof.age = age;
+                prof.weight = w;
+                prof.height = h;
+                prof.weekData = buildPersonalizedWeek(w, h, age);
+
+                saveAllProfiles(pendingAuthUserKey);
+                masterAdminSession = (pendingAuthUserKey === 'ishak');
+                closePinBox();
+                enterUserDashboard(pendingAuthUserKey);
+            } else {
+                // Login verification (Member's own PIN OR Ishak's Master PIN)
+                const ishakPin = allProfiles['ishak'] && allProfiles['ishak'].pin;
+                if (pinVal !== prof.pin && !(ishakPin && pinVal === ishakPin)) {
+                    errEl.textContent = 'كلمة المرور غير صحيحة! لا يمكنك الدخول لحساب شخص آخر.';
+                    errEl.classList.remove('hidden');
+                    return;
+                }
+
+                masterAdminSession = (pendingAuthUserKey === 'ishak' || Boolean(ishakPin && pinVal === ishakPin));
+                closePinBox();
+                enterUserDashboard(pendingAuthUserKey);
+            }
+        }
+
+        function enterUserDashboard(userKey) {
+            currentUserKey = userKey;
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+
+            const adminBtn = document.getElementById('tabBtn_admin');
+            const navGrid = document.getElementById('navTabsGrid');
+            const overrideBanner = document.getElementById('adminOverrideBanner');
+
+            if (masterAdminSession) {
+                adminBtn.classList.remove('hidden');
+                adminBtn.classList.add('flex');
+                navGrid.className = 'grid grid-cols-5 gap-1.5 p-1.5 bg-slate-950/95 rounded-2xl border border-amber-500/25 shadow-lg';
+            } else {
+                adminBtn.classList.add('hidden');
+                adminBtn.classList.remove('flex');
+                navGrid.className = 'grid grid-cols-4 gap-1.5 p-1.5 bg-slate-950/95 rounded-2xl border border-amber-500/25 shadow-lg';
+            }
+
+            if (masterAdminSession && currentUserKey !== 'ishak') {
+                overrideBanner.classList.remove('hidden');
+                document.getElementById('adminOverrideText').textContent = `وضع المدير العام (Ishak): أنت تتحكم الآن في حساب ${allProfiles[currentUserKey].name}`;
+            } else {
+                overrideBanner.classList.add('hidden');
+            }
+
+            renderUserHeaderAndStats();
+            renderDaysBar();
+            renderCurrentDay();
+            renderPlaylist();
+            if (masterAdminSession) renderAdminPanel();
+            switchTab('workout');
+        }
+
+        function returnToIshakAdmin() {
+            enterUserDashboard('ishak');
+            switchTab('admin');
+        }
+
+        function lockProfile() {
+            const audio = document.getElementById('mainAudioElement');
+            audio.pause();
+            currentUserKey = null;
+            masterAdminSession = false;
+            pendingAuthUserKey = null;
+            closePinBox();
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('authScreen').classList.remove('hidden');
+            renderAuthScreen();
+        }
+
+        // =========================================================================
+        // 5. USER DASHBOARD & PROFILE CUSTOMIZATION
+        // =========================================================================
+        function getCurrentProfile() {
+            return allProfiles[currentUserKey];
+        }
+
+        function renderUserHeaderAndStats() {
+            const user = getCurrentProfile();
+            const age = user.age || 17;
+            const analysis = analyzeBodyStats(user.weight, user.height, age);
+
+            document.getElementById('headerAvatar').innerHTML = getAvatarHTML(user);
+            document.getElementById('profilePreviewAvatar').innerHTML = getAvatarHTML(user);
+
+            document.getElementById('headerUserName').textContent = `${user.name} (${user.arName})`;
+            document.getElementById('headerAdminCrown').classList.toggle('hidden', currentUserKey !== 'ishak');
+            document.getElementById('headerBodyBadge').textContent = analysis.modeTitle;
+            document.getElementById('headerMetricsText').textContent = `${analysis.ageNote}`;
+
+            document.getElementById('statAge').textContent = `${age} سنة`;
+            document.getElementById('statWeightHeight').textContent = `${user.weight} kg • ${user.height} cm`;
+            document.getElementById('statBMI').textContent = `${analysis.bmi}`;
+            document.getElementById('statProtein').textContent = `${analysis.protein} g / يوم`;
+            document.getElementById('statCalories').textContent = `${analysis.calories} kcal`;
+
+            document.getElementById('editNameInput').value = user.name || '';
+            document.getElementById('editArNameInput').value = user.arName || '';
+            document.getElementById('editPhotoUrlInput').value = user.photoUrl || '';
+            document.getElementById('editAgeInput').value = age;
+            document.getElementById('editWeightInput').value = user.weight;
+            document.getElementById('editHeightInput').value = user.height;
+        }
+
+        function handleProfilePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const maxSize = 220;
+                    let w = img.width;
+                    let h = img.height;
+                    if (w > h) {
+                        if (w > maxSize) { h *= maxSize / w; w = maxSize; }
+                    } else {
+                        if (h > maxSize) { w *= maxSize / h; h = maxSize; }
+                    }
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.80);
+
+                    const user = getCurrentProfile();
+                    user.photoData = dataUrl;
+                    saveAllProfiles();
+                    renderUserHeaderAndStats();
+                    if (masterAdminSession) renderAdminPanel();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeProfilePhoto() {
+            const user = getCurrentProfile();
+            user.photoData = '';
+            user.photoUrl = '';
+            saveAllProfiles();
+            renderUserHeaderAndStats();
+        }
+
+        function saveProfileOnly() {
+            const user = getCurrentProfile();
+            const newName = document.getElementById('editNameInput').value.trim();
+            const newArName = document.getElementById('editArNameInput').value.trim();
+            const newPhotoUrl = document.getElementById('editPhotoUrlInput').value.trim();
+            const newAge = parseInt(document.getElementById('editAgeInput').value) || 17;
+            const newW = parseFloat(document.getElementById('editWeightInput').value) || user.weight;
+            const newH = parseFloat(document.getElementById('editHeightInput').value) || user.height;
+
+            if (newName) {
+                user.name = newName;
+                user.initials = newName.slice(0, 2).toUpperCase();
+            }
+            if (newArName) user.arName = newArName;
+            user.photoUrl = newPhotoUrl;
+            user.age = newAge;
+            user.weight = newW;
+            user.height = newH;
+
+            saveAllProfiles();
+            renderUserHeaderAndStats();
+            if (masterAdminSession) renderAdminPanel();
+            alert('تم حفظ الاسم والصورة والبيانات بنجاح!');
+        }
+
+        function saveMetricsAndRecalculate() {
+            const user = getCurrentProfile();
+            const newName = document.getElementById('editNameInput').value.trim();
+            const newArName = document.getElementById('editArNameInput').value.trim();
+            const newPhotoUrl = document.getElementById('editPhotoUrlInput').value.trim();
+            const newAge = parseInt(document.getElementById('editAgeInput').value);
+            const newW = parseFloat(document.getElementById('editWeightInput').value);
+            const newH = parseFloat(document.getElementById('editHeightInput').value);
+
+            if (!newW || !newH || !newAge || newW < 30 || newH < 120 || newAge < 10) {
+                return alert('يرجى إدخال عمر ووزن وطول صحيحين');
+            }
+
+            if (newName) {
+                user.name = newName;
+                user.initials = newName.slice(0, 2).toUpperCase();
+            }
+            if (newArName) user.arName = newArName;
+            user.photoUrl = newPhotoUrl;
+            user.age = newAge;
+            user.weight = newW;
+            user.height = newH;
+            user.weekData = buildPersonalizedWeek(newW, newH, newAge);
+
+            saveAllProfiles();
+            renderUserHeaderAndStats();
+            renderDaysBar();
+            renderCurrentDay();
+            if (masterAdminSession) renderAdminPanel();
+            switchTab('workout');
+            alert(`تم تحديث برنامج ${user.name} ومزامنته سحابياً بنجاح!`);
+        }
+
+        // =========================================================================
+        // 6. ISHAK MASTER ADMIN PANEL FUNCTIONS 👑
+        // =========================================================================
+        function renderAdminPanel() {
+            const container = document.getElementById('adminMembersList');
+            if (!container) return;
+            container.innerHTML = '';
+
+            MEMBER_ORDER.forEach(key => {
+                const prof = allProfiles[key];
+                const analysis = analyzeBodyStats(prof.weight, prof.height, prof.age || 17);
+
+                const card = document.createElement('div');
+                card.className = 'bg-slate-950/90 rounded-3xl p-4 border border-amber-500/30 space-y-3.5';
+                card.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-2xl gold-btn flex items-center justify-center font-black text-sm overflow-hidden">
+                                ${getAvatarHTML(prof)}
+                            </div>
+                            <div>
+                                <h4 class="font-black text-sm text-white">${prof.name} <span class="text-amber-300 text-xs">(${prof.arName})</span></h4>
+                                <span class="text-[10px] text-emerald-400 font-bold block">${analysis.modeTitle}</span>
+                            </div>
+                        </div>
+                        <span class="text-xs font-mono font-black bg-amber-500/15 text-amber-300 border border-amber-500/30 px-2.5 py-1 rounded-xl">
+                            ${prof.pin ? 'PIN: ' + prof.pin : 'لم ينشئ رمزاً بعد'}
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label class="text-[10px] text-slate-400 block mb-0.5">الاسم</label>
+                            <input id="adm_name_${key}" type="text" value="${prof.name}" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-bold">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 block mb-0.5">كلمة المرور (اتركها فارغة ليُنشئها بنفسه)</label>
+                            <input id="adm_pin_${key}" type="text" value="${prof.pin || ''}" placeholder="غير معيّن" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-amber-300 font-mono font-bold text-center">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label class="text-[10px] text-slate-400 block mb-0.5">العمر</label>
+                            <input id="adm_age_${key}" type="number" value="${prof.age || 17}" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-white">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 block mb-0.5">الوزن (kg)</label>
+                            <input id="adm_w_${key}" type="number" value="${prof.weight}" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-white">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 block mb-0.5">الطول (cm)</label>
+                            <input id="adm_h_${key}" type="number" value="${prof.height}" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-center font-bold text-white">
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 pt-1">
+                        <button onclick="adminSaveMember('${key}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 font-bold text-xs py-2 rounded-xl transition">
+                            <i class="fa-solid fa-check ml-1"></i>حفظ ومزامنة
+                        </button>
+                        <button onclick="enterUserDashboard('${key}')" class="flex-1 gold-btn text-xs py-2 rounded-xl transition">
+                            <i class="fa-solid fa-arrow-up-right-from-square ml-1"></i>الدخول لحسابه
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function adminSaveMember(key) {
+            const meta = MEMBERS_META[key];
+            const name = document.getElementById(`adm_name_${key}`).value.trim() || meta.name;
+            const pinRaw = document.getElementById(`adm_pin_${key}`).value.trim();
+            const age = parseInt(document.getElementById(`adm_age_${key}`).value) || 17;
+            const w = parseFloat(document.getElementById(`adm_w_${key}`).value) || meta.defaultWeight;
+            const h = parseFloat(document.getElementById(`adm_h_${key}`).value) || meta.defaultHeight;
+
+            allProfiles[key].name = name;
+            allProfiles[key].initials = name.slice(0, 2).toUpperCase();
+            allProfiles[key].pin = pinRaw ? pinRaw : null;
+            allProfiles[key].age = age;
+            allProfiles[key].weight = w;
+            allProfiles[key].height = h;
+            allProfiles[key].weekData = buildPersonalizedWeek(w, h, age);
+
+            saveAllProfiles(key);
+            renderAdminPanel();
+            if (currentUserKey === key) {
+                renderUserHeaderAndStats();
+                renderCurrentDay();
+            }
+            alert(`تم بواسطة المدير Ishak تحديث ومزامنة حساب ${name} بنجاح!`);
+        }
+
+        // =========================================================================
+        // 7. WORKOUTS (ORDERED + UP/DOWN REORDERING) & ANATOMY CARDS
+        // =========================================================================
+        function renderDaysBar() {
+            const user = getCurrentProfile();
+            const container = document.getElementById('daysContainer');
+            container.innerHTML = '';
+
+            dayOrder.forEach((key) => {
+                const day = user.weekData[key];
+                const isSelected = key === currentDayKey;
+                const btn = document.createElement('button');
+                btn.onclick = () => {
+                    currentDayKey = key;
+                    renderDaysBar();
+                    renderCurrentDay();
+                };
+                btn.className = `px-4 py-2.5 rounded-2xl font-bold text-xs whitespace-nowrap transition flex flex-col items-center min-w-[88px] border ${
+                    isSelected
+                        ? 'gold-btn border-amber-300'
+                        : day.isGymDay
+                            ? 'bg-slate-900/95 text-amber-300 border-amber-500/35 hover:border-amber-400'
+                            : 'bg-slate-950/70 text-slate-400 border-slate-800 hover:text-white'
+                }`;
+                btn.innerHTML = `
+                    <span>${day.shortName}</span>
+                    <span class="text-[9px] mt-0.5 ${isSelected ? 'text-black font-extrabold' : day.isGymDay ? 'text-amber-400/90' : 'text-slate-500'}">
+                        ${day.isGymDay ? 'حصة تمرين' : 'راحة وتنظيم'}
+                    </span>
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        function renderCurrentDay() {
+            const user = getCurrentProfile();
+            const day = user.weekData[currentDayKey];
+
+            document.getElementById('dayBadge').textContent = day.badge;
+            document.getElementById('dayTitle').textContent = day.title;
+            document.getElementById('daySubtitle').textContent = day.subtitle;
+
+            renderExercises();
+            renderTasks();
+            updateDayProgress();
+        }
+
+        function moveExerciseOrder(exIndex, direction) {
+            const user = getCurrentProfile();
+            const list = user.weekData[currentDayKey].exercises;
+            const targetIndex = exIndex + direction;
+            if (targetIndex < 0 || targetIndex >= list.length) return;
+
+            const temp = list[exIndex];
+            list[exIndex] = list[targetIndex];
+            list[targetIndex] = temp;
+
+            saveAllProfiles();
+            renderExercises();
+        }
+
+        function renderExercises() {
+            const user = getCurrentProfile();
+            const exercises = user.weekData[currentDayKey].exercises;
+            const container = document.getElementById('exercisesList');
+            container.innerHTML = '';
+
+            exercises.forEach((ex, exIndex) => {
+                if (ex.setsDone.length !== 3) ex.setsDone = [false, false, false];
+                const allSetsDone = ex.setsDone.every(Boolean);
+
+                const setsHTML = ex.setsDone.map((done, setIdx) => `
+                    <button onclick="toggleSet(${exIndex}, ${setIdx})" class="h-11 rounded-xl font-extrabold text-xs transition flex items-center justify-center gap-1.5 border ${
+                        done
+                            ? 'gold-btn border-amber-300'
+                            : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-amber-500/40'
+                    }">
+                        <i class="fa-solid ${done ? 'fa-check' : 'fa-circle-dot'} text-[11px]"></i>
+                        <span>جولة ${setIdx + 1}</span>
+                    </button>
+                `).join('');
+
+                const secondaryText = ex.secondaryMuscle || 'العضلات المثبتة للمفصل';
+                const targetDetailText = ex.targetDetail || 'يركز على الألياف العضلية الأساسية لزيادة القوة والحجم العضلي المتناسق.';
+
+                const card = document.createElement('div');
+                card.className = `luxury-card rounded-3xl overflow-hidden transition border ${allSetsDone ? 'gold-border-glow' : 'border-amber-500/15'}`;
+                card.innerHTML = `
+                    <div class="grid grid-cols-1 sm:grid-cols-3">
+                        <div class="relative h-56 sm:h-auto bg-slate-950 overflow-hidden group">
+                            <img src="${ex.image}" alt="${ex.name}" onerror="this.src='https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=900&q=80'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-90">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-transparent"></div>
+                            <span class="absolute top-3 right-3 gold-btn px-3 py-1 rounded-xl text-xs font-black shadow-lg">
+                                تمرين #${exIndex + 1}
+                            </span>
+                            <button onclick="openVideoModal(${exIndex})" class="absolute bottom-3 right-3 left-3 gold-btn text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 shadow-lg transition">
+                                <i class="fa-solid fa-circle-play text-sm"></i>
+                                <span>فيديو الشرح وتشريح العضلة</span>
+                            </button>
+                        </div>
+
+                        <div class="sm:col-span-2 p-4 flex flex-col justify-between space-y-3">
+                            <div>
+                                <div class="flex items-start justify-between gap-2">
+                                    <h4 class="font-black text-base text-white leading-snug">${ex.name}</h4>
+                                    <div class="flex items-center gap-1 shrink-0">
+                                        <button onclick="moveExerciseOrder(${exIndex}, -1)" title="تحريك للأعلى" class="w-7 h-7 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-300 border border-slate-700 flex items-center justify-center text-xs">
+                                            <i class="fa-solid fa-arrow-up"></i>
+                                        </button>
+                                        <button onclick="moveExerciseOrder(${exIndex}, 1)" title="تحريك للأسفل" class="w-7 h-7 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-300 border border-slate-700 flex items-center justify-center text-xs">
+                                            <i class="fa-solid fa-arrow-down"></i>
+                                        </button>
+                                        <button onclick="deleteExercise(${exIndex})" title="حذف التمرين" class="w-7 h-7 rounded-lg bg-slate-900 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-slate-700 flex items-center justify-center text-xs">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="mt-2 bg-slate-950/90 border border-amber-500/25 rounded-2xl p-3 space-y-1.5">
+                                    <div class="flex flex-wrap items-center gap-2 text-[11px]">
+                                        <span class="font-black text-amber-300"><i class="fa-solid fa-bullseye ml-1"></i>المنطقة المستهدفة:</span>
+                                        <span class="font-bold text-emerald-400">${ex.muscle}</span>
+                                        <span class="text-slate-600">|</span>
+                                        <span class="text-slate-400">المساعدة: <strong class="text-sky-300">${secondaryText}</strong></span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-300 leading-relaxed">${targetDetailText}</p>
+                                </div>
+
+                                <p class="text-xs text-slate-400 mt-2"><strong class="text-amber-200">طريقة الأداء:</strong> ${ex.tips}</p>
+                            </div>
+
+                            <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-950/90 p-2.5 rounded-2xl border border-slate-800">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs text-slate-400 font-semibold">النظام:</span>
+                                    <span class="text-xs font-extrabold text-amber-300 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/25">${ex.reps}</span>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-xs text-slate-400 font-semibold">الوزن المقترح:</span>
+                                    <input type="number" value="${ex.weight}" onchange="updateWeight(${exIndex}, this.value)" class="w-16 bg-slate-900 border border-amber-500/40 rounded-lg px-2 py-1 text-center text-xs font-black text-amber-300 focus:outline-none">
+                                    <span class="text-xs text-amber-400 font-bold">kg</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between items-center mb-1.5">
+                                    <span class="text-[11px] font-bold text-slate-400">سجّل الجولات الثلاث بالترتيب:</span>
+                                    ${allSetsDone ? '<span class="text-[11px] font-black text-amber-300"><i class="fa-solid fa-crown ml-1"></i>أنهيت 3 جولات!</span>' : ''}
+                                </div>
+                                <div class="grid grid-cols-3 gap-2.5">
+                                    ${setsHTML}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderTasks() {
+            const user = getCurrentProfile();
+            const tasks = user.weekData[currentDayKey].tasks;
+            const container = document.getElementById('tasksList');
+            container.innerHTML = '';
+
+            tasks.sort((a, b) => a.time.localeCompare(b.time));
+
+            const catColors = {
+                'دراسة': 'text-amber-300 bg-amber-500/10 border-amber-500/30',
+                'تغذية': 'text-emerald-300 bg-emerald-500/10 border-emerald-500/30',
+                'رياضة': 'text-sky-300 bg-sky-500/10 border-sky-500/30',
+                'شخصي': 'text-purple-300 bg-purple-500/10 border-purple-500/30'
+            };
+
+            tasks.forEach((task, idx) => {
+                const badgeStyle = catColors[task.category] || catColors['شخصي'];
+                const item = document.createElement('div');
+                item.className = `luxury-card rounded-2xl p-3.5 flex items-center justify-between gap-3 transition border ${
+                    task.done ? 'border-amber-500/40 opacity-75' : 'border-slate-800'
+                }`;
+                item.innerHTML = `
+                    <div class="flex items-center gap-3 flex-1 cursor-pointer" onclick="toggleTask(${idx})">
+                        <div class="w-6 h-6 rounded-lg flex items-center justify-center border transition ${
+                            task.done ? 'gold-btn border-amber-300' : 'border-slate-600 bg-slate-950'
+                        }">
+                            ${task.done ? '<i class="fa-solid fa-check text-xs font-black text-black"></i>' : ''}
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-xs font-mono font-extrabold text-amber-200 bg-slate-900 px-2 py-0.5 rounded-md border border-slate-800">${task.time}</span>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md border ${badgeStyle}">${task.category}</span>
+                            </div>
+                            <p class="text-sm font-bold mt-1 ${task.done ? 'line-through text-slate-400' : 'text-white'}">${task.title}</p>
+                        </div>
+                    </div>
+                    <button onclick="deleteTask(${idx})" class="text-slate-500 hover:text-rose-400 px-2 py-1">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function updateDayProgress() {
+            const user = getCurrentProfile();
+            const day = user.weekData[currentDayKey];
+
+            const totalTasks = day.tasks.length;
+            const doneTasks = day.tasks.filter(t => t.done).length;
+
+            let totalSets = 0;
+            let doneSets = 0;
+            day.exercises.forEach(ex => {
+                totalSets += ex.setsDone.length;
+                doneSets += ex.setsDone.filter(Boolean).length;
+            });
+
+            document.getElementById('tasksStat').textContent = `${doneTasks}/${totalTasks}`;
+            document.getElementById('setsStat').textContent = `${doneSets}/${totalSets}`;
+
+            const total = totalTasks + totalSets;
+            const done = doneTasks + doneSets;
+            const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+            document.getElementById('progressPercent').textContent = `${pct}%`;
+            document.getElementById('progressBar').style.width = `${pct}%`;
+        }
+
+        function toggleSet(exIndex, setIdx) {
+            const user = getCurrentProfile();
+            const current = user.weekData[currentDayKey].exercises[exIndex].setsDone[setIdx];
+            user.weekData[currentDayKey].exercises[exIndex].setsDone[setIdx] = !current;
+            saveAllProfiles();
+            renderExercises();
+            updateDayProgress();
+
+            if (!current) {
+                const analysis = analyzeBodyStats(user.weight, user.height, user.age || 17);
+                setTimer(analysis.restRecommended);
+                startTimerSilent();
+            }
+        }
+
+        function updateWeight(exIndex, val) {
+            const user = getCurrentProfile();
+            user.weekData[currentDayKey].exercises[exIndex].weight = val;
+            saveAllProfiles();
+        }
+
+        function toggleTask(idx) {
+            const user = getCurrentProfile();
+            user.weekData[currentDayKey].tasks[idx].done = !user.weekData[currentDayKey].tasks[idx].done;
+            saveAllProfiles();
+            renderTasks();
+            updateDayProgress();
+        }
+
+        function deleteTask(idx) {
+            const user = getCurrentProfile();
+            user.weekData[currentDayKey].tasks.splice(idx, 1);
+            saveAllProfiles();
+            renderTasks();
+            updateDayProgress();
+        }
+
+        function deleteExercise(exIndex) {
+            if (confirm('هل تريد حذف هذا التمرين من الجدول؟')) {
+                const user = getCurrentProfile();
+                user.weekData[currentDayKey].exercises.splice(exIndex, 1);
+                saveAllProfiles();
+                renderExercises();
+                updateDayProgress();
+            }
+        }
+
+        function resetDayProgress() {
+            if (confirm('هل تريد تصفير علامات الإنجاز لهذا اليوم؟')) {
+                const user = getCurrentProfile();
+                user.weekData[currentDayKey].tasks.forEach(t => t.done = false);
+                user.weekData[currentDayKey].exercises.forEach(ex => ex.setsDone = [false, false, false]);
+                saveAllProfiles();
+                renderCurrentDay();
+            }
+        }
+
+        // =========================================================================
+        // 8. NAVIGATION TABS
+        // =========================================================================
+        function switchTab(tab) {
+            activeTab = tab;
+            const tabs = ['workout', 'schedule', 'playlist', 'body', 'admin'];
+            tabs.forEach(t => {
+                const sec = document.getElementById(`section_${t}`);
+                const btn = document.getElementById(`tabBtn_${t}`);
+                if (!sec || !btn) return;
+                if (t === tab) {
+                    sec.classList.remove('hidden');
+                    btn.className = 'py-2.5 px-2 rounded-xl font-extrabold text-xs transition flex flex-col sm:flex-row items-center justify-center gap-1.5 gold-btn';
+                } else {
+                    sec.classList.add('hidden');
+                    if (t === 'admin') {
+                        btn.className = (masterAdminSession ? 'flex ' : 'hidden ') + 'py-2.5 px-2 rounded-xl font-extrabold text-xs transition flex-col sm:flex-row items-center justify-center gap-1.5 text-amber-300 hover:text-white border border-amber-500/30 bg-amber-500/10';
+                    } else {
+                        btn.className = 'py-2.5 px-2 rounded-xl font-extrabold text-xs transition flex flex-col sm:flex-row items-center justify-center gap-1.5 text-slate-400 hover:text-white';
+                    }
+                }
+            });
+
+            const showDayBar = (tab === 'workout' || tab === 'schedule');
+            document.getElementById('daysBarSection').classList.toggle('hidden', !showDayBar);
+        }
+
+        // =========================================================================
+        // 9. PERSONAL AUDIO & PLAYLIST HUB
+        // =========================================================================
+        function renderPlaylist() {
+            const user = getCurrentProfile();
+            const container = document.getElementById('playlistContainer');
+            container.innerHTML = '';
+
+            if (!user.playlist || user.playlist.length === 0) {
+                user.playlist = getDefaultPlaylist();
+            }
+
+            user.playlist.forEach((track, idx) => {
+                const isCurrent = idx === currentTrackIndex;
+                const item = document.createElement('div');
+                item.className = `p-3.5 rounded-2xl flex items-center justify-between gap-3 border transition ${
+                    isCurrent ? 'bg-amber-500/15 border-amber-400' : 'bg-slate-950/80 border-slate-800'
+                }`;
+                item.innerHTML = `
+                    <div class="flex items-center gap-3 min-w-0 flex-1 cursor-pointer" onclick="playTrack(${idx})">
+                        <div class="w-10 h-10 rounded-xl ${isCurrent ? 'gold-btn' : 'bg-slate-900 text-amber-400 border border-slate-700'} flex items-center justify-center shrink-0">
+                            <i class="fa-solid ${isCurrent ? 'fa-volume-high' : 'fa-play'} text-xs"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <span class="text-[10px] font-bold text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">${track.category}</span>
+                            <h4 class="text-xs sm:text-sm font-bold text-white truncate mt-1">${track.title}</h4>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button onclick="playTrack(${idx})" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/30">
+                            تشغيل
+                        </button>
+                        <button onclick="deleteTrack(${idx})" class="text-slate-500 hover:text-rose-400 px-2 py-1">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function addCustomTrack() {
+            const title = document.getElementById('trackTitleInput').value.trim();
+            const category = document.getElementById('trackCategoryInput').value;
+            const url = document.getElementById('trackUrlInput').value.trim();
+
+            if (!title) return alert('يرجى كتابة اسم النشيد أو المقطع الصوتي');
+
+            const user = getCurrentProfile();
+            user.playlist.push({
+                id: 'tr_' + Date.now(),
+                title,
+                category,
+                url,
+                isYoutubeSearch: !url,
+                searchQuery: title
+            });
+
+            document.getElementById('trackTitleInput').value = '';
+            document.getElementById('trackUrlInput').value = '';
+            saveAllProfiles();
+            renderPlaylist();
+        }
+
+        function handleLocalAudioUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const objectUrl = URL.createObjectURL(file);
+            const user = getCurrentProfile();
+
+            user.playlist.unshift({
+                id: 'local_' + Date.now(),
+                title: file.name.replace(/\.[^/.]+$/, ""),
+                category: 'ملف من جهازي 📱',
+                url: objectUrl,
+                isLocalBlob: true
+            });
+            renderPlaylist();
+            playTrack(0);
+        }
+
+        function extractYouTubeId(url) {
+            if (!url) return null;
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        function playTrack(idx) {
+            const user = getCurrentProfile();
+            const track = user.playlist[idx];
+            if (!track) return;
+
+            currentTrackIndex = idx;
+            renderPlaylist();
+
+            document.getElementById('nowPlayingTitle').textContent = track.title;
+            document.getElementById('nowPlayingSub').textContent = `${track.category} • حساب ${user.name}`;
+
+            const audio = document.getElementById('mainAudioElement');
+            const extBox = document.getElementById('externalPlayerBox');
+            const ytId = extractYouTubeId(track.url);
+
+            if (ytId) {
+                audio.pause();
+                extBox.classList.remove('hidden');
+                extBox.innerHTML = `<iframe class="w-full h-full" src="https://www.youtube.com/embed/${ytId}?autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+                switchTab('playlist');
+            } else if (track.url && (track.url.endsWith('.mp3') || track.url.endsWith('.m4a') || track.url.endsWith('.wav') || track.isLocalBlob)) {
+                extBox.classList.add('hidden');
+                extBox.innerHTML = '';
+                audio.src = track.url;
+                audio.play();
+                document.getElementById('playPauseBtn').innerHTML = '<i class="fa-solid fa-pause text-xs"></i>';
+            } else if (track.url) {
+                window.open(track.url, '_blank');
+            } else {
+                const q = encodeURIComponent(track.searchQuery || track.title);
+                window.open(`https://www.youtube.com/results?search_query=${q}`, '_blank');
+            }
+        }
+
+        function toggleAudioPlay() {
+            const audio = document.getElementById('mainAudioElement');
+            const btn = document.getElementById('playPauseBtn');
+            if (!audio.src) {
+                playTrack(currentTrackIndex);
+                return;
+            }
+            if (audio.paused) {
+                audio.play();
+                btn.innerHTML = '<i class="fa-solid fa-pause text-xs"></i>';
+            } else {
+                audio.pause();
+                btn.innerHTML = '<i class="fa-solid fa-play text-xs"></i>';
+            }
+        }
+
+        function prevTrack() {
+            const user = getCurrentProfile();
+            if (!user.playlist.length) return;
+            currentTrackIndex = (currentTrackIndex - 1 + user.playlist.length) % user.playlist.length;
+            playTrack(currentTrackIndex);
+        }
+
+        function nextTrack() {
+            const user = getCurrentProfile();
+            if (!user.playlist.length) return;
+            currentTrackIndex = (currentTrackIndex + 1) % user.playlist.length;
+            playTrack(currentTrackIndex);
+        }
+
+        function deleteTrack(idx) {
+            const user = getCurrentProfile();
+            user.playlist.splice(idx, 1);
+            saveAllProfiles();
+            renderPlaylist();
+        }
+
+        function updateUserPin() {
+            const newPin = document.getElementById('newPinInput').value.trim();
+            if (newPin.length < 4) return alert('يرجى إدخال كلمة مرور من 4 أرقام على الأقل');
+            const user = getCurrentProfile();
+            user.pin = newPin;
+            document.getElementById('newPinInput').value = '';
+            saveAllProfiles();
+            if (masterAdminSession) renderAdminPanel();
+            alert('تم تحديث كلمة المرور الخاصة بحسابك ومزامنتها بنجاح!');
+        }
+
+        // =========================================================================
+        // 10. VIDEO & ANATOMY MODAL, TIMER, SWAP & ADD MODALS
+        // =========================================================================
+        function openVideoModal(exIndex) {
+            const user = getCurrentProfile();
+            const ex = user.weekData[currentDayKey].exercises[exIndex];
+
+            document.getElementById('modalMuscleTag').textContent = `${ex.muscle} • ${ex.reps}`;
+            document.getElementById('modalExerciseName').textContent = ex.name;
+            document.getElementById('modalPrimaryMuscle').textContent = ex.muscle;
+            document.getElementById('modalSecondaryMuscle').textContent = ex.secondaryMuscle || 'العضلات المثبتة للمفصل';
+            document.getElementById('modalAnatomyDetail').textContent = ex.targetDetail || 'استهداف مباشر للألياف العضلية لزيادة القوة والحجم العضلي.';
+            document.getElementById('modalExerciseTips').textContent = ex.tips;
+
+            const ytSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(ex.videoQuery || ex.name)}`;
+            document.getElementById('modalYoutubeBtn').href = ex.customVideoUrl || ytSearchUrl;
+
+            const container = document.getElementById('videoContainer');
+            const ytId = extractYouTubeId(ex.customVideoUrl);
+
+            if (ytId) {
+                container.innerHTML = `<iframe class="w-full h-full" src="https://www.youtube.com/embed/${ytId}" frameborder="0" allowfullscreen></iframe>`;
+            } else if (ex.customVideoUrl && ex.customVideoUrl.endsWith('.mp4')) {
+                container.innerHTML = `<video src="${ex.customVideoUrl}" controls autoplay loop class="w-full h-full object-cover"></video>`;
+            } else {
+                container.innerHTML = `
+                    <img src="${ex.image}" class="absolute inset-0 w-full h-full object-cover opacity-50">
+                    <div class="relative z-10 flex flex-col items-center text-center p-4 bg-black/50 backdrop-blur-[2px] w-full h-full justify-center">
+                        <div class="w-16 h-16 rounded-full bg-amber-500/25 border-2 border-amber-400 flex items-center justify-center animate-pulse-slow mb-2 shadow-xl">
+                            <i class="fa-solid fa-dumbbell text-2xl text-amber-300"></i>
+                        </div>
+                        <span class="bg-black/90 border border-amber-500/40 px-3.5 py-1 rounded-full text-xs font-extrabold text-amber-300 mb-1">
+                            الوزن المقترح لك: ${ex.weight} kg • 3 جولات
+                        </span>
+                        <p class="text-[11px] text-slate-200 max-w-xs mt-1">اضغط على الزر الأحمر بالأسفل لمشاهدة الفيديو التوضيحي وتشريح العضلة على YouTube</p>
+                    </div>
+                `;
+            }
+
+            const modal = document.getElementById('videoModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeVideoModal() {
+            const modal = document.getElementById('videoModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // REST TIMER
+        let timerSeconds = 90;
+        let timerInterval = null;
+        let timerRunning = false;
+
+        function formatTime(sec) {
+            const m = String(Math.floor(sec / 60)).padStart(2, '0');
+            const s = String(sec % 60).padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function updateTimerUI() {
+            const formatted = formatTime(timerSeconds);
+            document.getElementById('timerDisplay').textContent = formatted;
+            document.getElementById('headerTimerText').textContent = timerRunning ? formatted : 'الراحة';
+        }
+
+        function setTimer(sec) {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            timerSeconds = sec;
+            updateTimerUI();
+            document.getElementById('startPauseTimerBtn').textContent = 'بدء المؤقت';
+        }
+
+        function startTimerSilent() {
+            clearInterval(timerInterval);
+            timerRunning = true;
+            document.getElementById('startPauseTimerBtn').textContent = 'إيقاف مؤقت';
+            timerInterval = setInterval(() => {
+                if (timerSeconds > 0) {
+                    timerSeconds--;
+                    updateTimerUI();
+                } else {
+                    clearInterval(timerInterval);
+                    timerRunning = false;
+                    playBeep();
+                    document.getElementById('headerTimerText').textContent = 'انتهت! 🔥';
+                    document.getElementById('startPauseTimerBtn').textContent = 'بدء المؤقت';
+                }
+            }, 1000);
+        }
+
+        function toggleTimer() {
+            if (timerRunning) {
+                clearInterval(timerInterval);
+                timerRunning = false;
+                document.getElementById('startPauseTimerBtn').textContent = 'استئناف';
+                updateTimerUI();
+            } else {
+                startTimerSilent();
+            }
+        }
+
+        function resetTimer() { setTimer(90); }
+
+        function playBeep() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                osc.connect(ctx.destination);
+                osc.frequency.value = 880;
+                osc.start();
+                setTimeout(() => osc.stop(), 400);
+            } catch (e) {}
+        }
+
+        function openTimerModal() {
+            document.getElementById('timerModal').classList.remove('hidden');
+            document.getElementById('timerModal').classList.add('flex');
+        }
+        function closeTimerModal() {
+            document.getElementById('timerModal').classList.add('hidden');
+            document.getElementById('timerModal').classList.remove('flex');
+        }
+
+        // SWAP DAYS
+        function openSwapModal() {
+            document.getElementById('swapDay1').value = currentDayKey;
+            document.getElementById('swapModal').classList.remove('hidden');
+            document.getElementById('swapModal').classList.add('flex');
+        }
+        function closeSwapModal() {
+            document.getElementById('swapModal').classList.add('hidden');
+            document.getElementById('swapModal').classList.remove('flex');
+        }
+        function confirmSwapDays() {
+            const d1 = document.getElementById('swapDay1').value;
+            const d2 = document.getElementById('swapDay2').value;
+            if (d1 === d2) return alert('اختر يومين مختلفين');
+
+            const user = getCurrentProfile();
+            const dayNamesBase = {
+                monday: 'الإثنين', tuesday: 'الثلاثاء', wednesday: 'الأربعاء',
+                thursday: 'الخميس', friday: 'الجمعة', saturday: 'السبت', sunday: 'الأحد'
+            };
+
+            const temp = {
+                isGymDay: user.weekData[d1].isGymDay,
+                badge: user.weekData[d1].badge,
+                title: user.weekData[d1].title,
+                subtitle: user.weekData[d1].subtitle,
+                exercises: user.weekData[d1].exercises
+            };
+
+            user.weekData[d1].isGymDay = user.weekData[d2].isGymDay;
+            user.weekData[d1].badge = user.weekData[d2].badge;
+            user.weekData[d1].title = user.weekData[d2].title;
+            user.weekData[d1].subtitle = user.weekData[d2].subtitle;
+            user.weekData[d1].exercises = user.weekData[d2].exercises;
+
+            user.weekData[d2].isGymDay = temp.isGymDay;
+            user.weekData[d2].badge = temp.badge;
+            user.weekData[d2].title = temp.title;
+            user.weekData[d2].subtitle = temp.subtitle;
+            user.weekData[d2].exercises = temp.exercises;
+
+            [d1, d2].forEach(k => {
+                const icon = user.weekData[k].isGymDay ? '🔥' : '💤';
+                user.weekData[k].shortName = `${dayNamesBase[k]} ${icon}`;
+            });
+
+            saveAllProfiles();
+            renderDaysBar();
+            renderCurrentDay();
+            closeSwapModal();
+        }
+
+        // ADD EXERCISE & TASK
+        function openAddExerciseModal() {
+            document.getElementById('addExerciseModal').classList.remove('hidden');
+            document.getElementById('addExerciseModal').classList.add('flex');
+        }
+        function closeAddExerciseModal() {
+            document.getElementById('addExerciseModal').classList.add('hidden');
+            document.getElementById('addExerciseModal').classList.remove('flex');
+        }
+        function saveNewExercise() {
+            const name = document.getElementById('newExName').value.trim();
+            const muscle = document.getElementById('newExMuscle').value.trim() || 'عضلة أساسية';
+            const secondaryMuscle = document.getElementById('newExSecondary').value.trim() || 'عضلات مساعدة';
+            const targetDetail = document.getElementById('newExTargetDetail').value.trim() || 'استهداف مباشر للألياف العضلية لزيادة القوة والحجم.';
+            const reps = document.getElementById('newExReps').value.trim() || '3 جولات × 10-12';
+            const image = document.getElementById('newExImage').value.trim() || 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=900&q=80';
+            const customVideoUrl = document.getElementById('newExVideo').value.trim();
+            const tips = document.getElementById('newExTips').value.trim() || 'حافظ على التحكم الكامل في الوزن خلال الجولات الثلاث.';
+
+            if (!name) return alert('أدخل اسم التمرين');
+
+            const user = getCurrentProfile();
+            user.weekData[currentDayKey].exercises.push({
+                id: 'ex_' + Date.now(),
+                name,
+                muscle,
+                secondaryMuscle,
+                targetDetail,
+                reps,
+                weight: scaleWeight(user.weight, 0.3, user.age || 17),
+                setsDone: [false, false, false],
+                image,
+                customVideoUrl,
+                videoQuery: name + ' proper form muscle anatomy',
+                tips
+            });
+
+            document.getElementById('newExName').value = '';
+            document.getElementById('newExTargetDetail').value = '';
+            saveAllProfiles();
+            renderExercises();
+            updateDayProgress();
+            closeAddExerciseModal();
+        }
+
+        function openAddTaskModal() {
+            document.getElementById('addTaskModal').classList.remove('hidden');
+            document.getElementById('addTaskModal').classList.add('flex');
+        }
+        function closeAddTaskModal() {
+            document.getElementById('addTaskModal').classList.add('hidden');
+            document.getElementById('addTaskModal').classList.remove('flex');
+        }
+        function saveNewTask() {
+            const time = document.getElementById('newTaskTime').value || '16:00';
+            const title = document.getElementById('newTaskTitle').value.trim();
+            const category = document.getElementById('newTaskCategory').value;
+            if (!title) return alert('أدخل عنوان المهمة');
+
+            const user = getCurrentProfile();
+            user.weekData[currentDayKey].tasks.push({
+                id: 't_' + Date.now(),
+                time,
+                title,
+                category,
+                done: false
+            });
+
+            document.getElementById('newTaskTitle').value = '';
+            saveAllProfiles();
+            renderTasks();
+            updateDayProgress();
+            closeAddTaskModal();
+        }
+
+        window.addEventListener('DOMContentLoaded', renderAuthScreen);
+    </script>
+</body>
+</html>
